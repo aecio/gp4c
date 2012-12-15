@@ -1,0 +1,10 @@
+/ant/ant
+/crawling/crawling
+/lawn/lawn
+/skeleton/skeleton
+/symbreg/sym
+.directory
+*.o
+*.a
+GPCpp.*
+crawling/datasets/synthetic.all.norm
