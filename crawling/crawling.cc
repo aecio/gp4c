@@ -431,8 +431,11 @@ int main () {
     // Set up the dataset and crawling resources
     dataset.Init("datasets/synthetic.all.norm");
     resources = dataset.NumInstances()*0.05;
-    cout << "Number URLS dataset: " << dataset.NumInstances() << endl;
-    cout << "Crawling resources : " << resources << endl;
+    cout << "Number URLS in dataset:  " << dataset.NumInstances() << endl;
+    cout << "Crawling resources used: " << resources << endl;
+    cout << "Number of cycles:        " << dataset.NumCycles() << endl;
+
+    cout << "========= GPC++ Config ==========" << endl;
 
     // Init GP system.
     GPInit (0, -1);
@@ -537,7 +540,7 @@ int main () {
 
     CrawlSimulation simulator(&dataset);
 
-    cout << "========= Baseline results =========" << endl;
+    cout << "============ Average Error Rate =============" << endl;
 
     simulator.Run(&s_random, resources);
     std::vector<double> error_random = simulator.ErrorRates();
@@ -559,7 +562,9 @@ int main () {
     std::vector<double> error_gp = simulator.ErrorRates();
     cout << "best_gp:         " << simulator.AverageErrorRate() << endl;
 
-    cout << "====================================" << endl;
+    cout << "============================================" << endl;
+
+    cout << "random; age; change_prob; change_prob_age; best_gp;" << endl;
 
     for(int i=0; i<dataset.NumCycles(); ++i) {
         cout << error_random[i] << "; ";

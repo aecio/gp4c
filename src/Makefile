@@ -27,7 +27,7 @@ GPKERNEL= 	compare.o \
 
 OBJS		= $(GPKERNEL) 
 
-CPPFLAGS	= -Ofast -march=native -mtune=native $(OVERALLCPPFLAGS) -I$(GPINCLUDE)
+CPPFLAGS	= $(OVERALLCPPFLAGS) -I$(GPINCLUDE)
 
 # Implicit rule how to compile
 .cc.o:

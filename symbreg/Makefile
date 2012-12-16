@@ -8,7 +8,7 @@ TARGET		= sym
 OBJS		= symbreg.o
 
 CPPFLAGS	= $(OVERALLCPPFLAGS) -I$(GPINCLUDE)
-LDFLAGS		= $(OVERALLLDFLAGS) -L$(GPLIB) -lgp -lm 
+LDFLAGS		= $(OVERALLLDFLAGS) -L$(GPLIB) -lgp -lm -lboost_system -lboost_thread -pthread
 
 # Implicit rule how to compile
 .cc.o:

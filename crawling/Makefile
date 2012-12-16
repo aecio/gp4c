@@ -7,8 +7,8 @@ TARGET		= crawling
 
 OBJS		= crawling.o
 
-CPPFLAGS	= -Ofast -march=native -mtune=native $(OVERALLCPPFLAGS) -I$(GPINCLUDE)
-LDFLAGS		= $(OVERALLLDFLAGS) -L$(GPLIB) -lgp -lm 
+CPPFLAGS	= $(OVERALLCPPFLAGS) -I$(GPINCLUDE)
+LDFLAGS		= $(OVERALLLDFLAGS) -L$(GPLIB) -lgp -lm -lboost_system -lboost_thread -pthread
 
 # Implicit rule how to compile
 .cc.o:

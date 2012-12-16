@@ -41,10 +41,10 @@ Tel:    (UK) 061 745 5000 x3633
 Fax:    (UK) 061 745 5999
 
 ------------------------------------------------------------------- */
-
+#include <unistd.h>
 #include "gp.h"
 
-
+#include "boost/threadpool.hpp"
 
 // This function is called after a new generation has been created.
 // It is alsso called after each new generation has been evolved using
@@ -53,6 +53,9 @@ Fax:    (UK) 061 745 5999
 // fitness of each genetic program.
 void GPPopulation::evaluate ()
 {
+    // start one thread per processor
+    static boost::threadpool::pool tp(sysconf( _SC_NPROCESSORS_ONLN ));
+
   // loop through whole population evaluating every GP
   for (int n=0; n<containerSize(); n++)
     {
@@ -67,11 +70,13 @@ void GPPopulation::evaluate ()
       if (!current->fitnessValid)
 	{
 	  // Evaluate genetic program
-	  current->evaluate ();
+//	  current->evaluate ();
+      tp.schedule(boost::bind(&GP::evaluate, current));
 
 	  current->fitnessValid=1;
 	}
     }
+  tp.wait();
 }
 
 
