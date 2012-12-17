@@ -15,6 +15,7 @@
 
 #include "crawling.h"
 #include "crawl_simulation.h"
+#include "dataset.h"
 #include "scorer.h"
 #include "terminals.h"
 #include "functions.h"
@@ -165,11 +166,9 @@ void MyGP::printOn(ostream& os) {
 }
 
 
-// We have the freedom to define this function in any way we like. In
-// this case, it takes the parameter x that represents the terminal X,
-// and returns the value of the expression. It's recursive of course.
+// We have the freedom to define this function in any way we like.
 double MyGene::evaluate(Instance& url, int cycle) {
-    if (isFunction ()) {
+    if(isFunction()) {
         return static_cast<Function*>(node)->Value(this, url, cycle);
     }
     if(isTerminal()) {
@@ -342,6 +341,10 @@ int main () {
          << InfoFileName << ".tex,"
          << InfoFileName << ".stc." << endl;
 
+    cout << "============== Starting Test ===============" << endl;
+
+    dataset.SetMode(WebArchiveDataset::TEST);
+
     RandomScorer s_random;
     AgeScorer s_age;
     ChangeProbScorer s_change_prob;
@@ -372,7 +375,7 @@ int main () {
     std::vector<double> error_gp = simulator.ErrorRates();
     cout << "best_gp:         " << simulator.AverageErrorRate() << endl;
 
-    cout << "============================================" << endl;
+    cout << "============= Error Rate per Cycle =============" << endl;
 
     cout << "random; age; change_prob; change_prob_age; best_gp;" << endl;
 

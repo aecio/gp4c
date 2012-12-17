@@ -1,8 +1,10 @@
 #ifndef CRAWL_SIMULATION_H
 #define CRAWL_SIMULATION_H
 
+#include <algorithm>
 #include <vector>
 
+#include "dataset.h"
 #include "scorer.h"
 
 class CrawlSimulation {

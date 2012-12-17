@@ -1,7 +1,10 @@
 #ifndef SCORER_H
 #define SCORER_H
 
-#include "crawling.h"
+#include <cstdlib>
+
+class Instance;
+class MyGP;
 
 class Scorer {
   public:
@@ -11,7 +14,7 @@ class Scorer {
 class GPScorer : public Scorer {
 public:
     GPScorer(MyGP* gp): gp_(gp) { }
-    virtual double Score(Instance& url, int cycle) {
+    inline double Score(Instance& url, int cycle) {
         return gp_->NthMyGene(0)->evaluate(url, cycle);
     }
 private:
@@ -20,7 +23,7 @@ private:
 
 class RandomScorer : public Scorer {
 public:
-    virtual double Score(Instance& url, int cycle) {
+    inline double Score(Instance& url, int cycle) {
         return rand() / (double) RAND_MAX;;
     }
 private:
@@ -29,7 +32,7 @@ private:
 
 class AgeScorer : public Scorer {
 public:
-    virtual double Score(Instance& url, int cycle) {
+    inline double Score(Instance& url, int cycle) {
         return url.GetAge(cycle);
     }
 private:
@@ -37,7 +40,7 @@ private:
 
 class ChangeProbScorer : public Scorer {
 public:
-    virtual double Score(Instance& url, int cycle) {
+    inline double Score(Instance& url, int cycle) {
         return url.GetChangeProbability();
     }
 private:
@@ -45,7 +48,7 @@ private:
 
 class ChangeProbAgeScorer : public Scorer {
 public:
-    virtual double Score(Instance& url, int cycle) {
+    inline double Score(Instance& url, int cycle) {
         return url.GetChangeProbabilityAge(cycle);
     }
 private:
