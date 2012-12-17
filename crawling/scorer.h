@@ -12,7 +12,7 @@ class GPScorer : public Scorer {
 public:
     GPScorer(MyGP* gp): gp_(gp) { }
     virtual double Score(Instance& url, int cycle) {
-        return gp_->NthMyGene(0)->evaluate(url, cycle, *gp_);
+        return gp_->NthMyGene(0)->evaluate(url, cycle);
     }
 private:
     MyGP* gp_;

@@ -13,9 +13,11 @@
 #include "gp.h" 
 #include "gpconfig.h"
 
-#include "scorer.h"
 #include "crawling.h"
 #include "crawl_simulation.h"
+#include "scorer.h"
+#include "terminals.h"
+#include "functions.h"
 
 typedef std::ostringstream ostrstream;
 
@@ -31,7 +33,7 @@ int printTexStyle=0;
 // read/write the configuration to a file. If you need more variables,
 // just add them below and insert an entry in the configArray.
 GPVariables cfg;
-char *InfoFileName="data";
+const char *InfoFileName="data";
 struct GPConfigVarInformation configArray[]=
 {
 {"PopulationSize", DATAINT, &cfg.PopulationSize},
@@ -60,77 +62,29 @@ struct GPConfigVarInformation configArray[]=
 // make a difference whether this gene is the main program or an ADF,
 // I assume the internal structure is correct.
 void MyGene::printMathStyle (ostream& os, int lastPrecedence) {
-    int precedence;
 
     // Function or terminal?
-    if (isFunction())
-    {
+    if (isFunction()) {
         // Determine operator priority
-        switch (node->value ()) {
-        case '*':
-        case '%':
-            precedence=1;
-            break;
-        case '+':
-        case '-':
-        case 'l':
-        case 'e':
-            precedence=0;
-            break;
-        default:
-            GPExitSystem ("MyGene::printMathStyle", "Undefined function value");
-        }
+        int precedence = static_cast<Function*>(node)->Precedence();
 
         // Do we need brackets?
-        if (lastPrecedence > precedence)
+        if (lastPrecedence > precedence) {
             os << "(";
-
-        // Print out the operator and the parameters
-        switch (node->value ())
-        {
-        case '*':
-            NthMyChild(0)->printMathStyle (os, precedence);
-            os << "*";
-            NthMyChild(1)->printMathStyle (os, precedence);
-            break;
-        case '+':
-            NthMyChild(0)->printMathStyle (os, precedence);
-            os << "+";
-            NthMyChild(1)->printMathStyle (os, precedence);
-            break;
-        case '-':
-            NthMyChild(0)->printMathStyle (os, precedence);
-            os << "-";
-            NthMyChild(1)->printMathStyle (os, precedence);
-            break;
-        case '%':
-            NthMyChild(0)->printMathStyle (os, precedence);
-            os << "%";
-            NthMyChild(1)->printMathStyle (os, precedence);
-            break;
-        case 'l':
-            os << "log(";
-            NthMyChild(0)->printMathStyle (os, precedence);
-            os << ")";
-            break;
-        case 'e':
-            os << "exp(";
-            NthMyChild(0)->printMathStyle (os, precedence);
-            os << ")";
-            break;
-        default:
-            GPExitSystem ("MyGene::printMathStyle",
-                          "Undefined function value");
         }
+        // Print out the operator and the parameters
+        static_cast<Function*>(node)->PrintMathStyle(this, os, precedence);
 
         // Do we need brackets?
-        if (lastPrecedence > precedence)
+        if (lastPrecedence > precedence) {
             os << ")";
+        }
     }
 
     // Print the terminal
-    if (isTerminal ())
-        os << *node;
+    if (isTerminal()) {
+        static_cast<Terminal*>(node)->PrintMathStyle(os);
+    }
 }
 
 
@@ -138,111 +92,39 @@ void MyGene::printMathStyle (ostream& os, int lastPrecedence) {
 // Print out a gene in LaTeX-style. Don't be confused, I don't make a
 // difference whether this gene is the main program or an ADF, I
 // assume the internal structure is correct.
-void MyGene::printTeXStyle (ostream& os, int lastPrecedence)
-{
-    int precedence=0;
+void MyGene::printTeXStyle(ostream& os, int lastPrecedence) {
 
     // Function or terminal?
-    if (isFunction ())
-    {
+    if (isFunction()) {
         // Determine operator priority
-        switch (node->value())
-        {
-        case '*':
-        case '%':
-            precedence=2;
-            break;
-        case '+':
-        case '-':
-            precedence=1;
-            break;
-        case 'l':
-        case 'e':
-            precedence=0;
-            break;
-        default:
-            GPExitSystem ("MyGene::printTeXStyle",
-                          "Undefined function value 1");
-        }
+        int precedence = static_cast<Function*>(node)->Precedence();
 
         // Do we need brackets?
-        if (lastPrecedence>precedence)
+        if(lastPrecedence > precedence) {
             os << "\\left(";
+        }
 
         // Print out the operator and the parameters
-        switch (node->value())
-        {
-        case '*':
-            NthMyChild(0)->printTeXStyle (os, precedence);
-            os << " ";
-            NthMyChild(1)->printTeXStyle (os, precedence);
-            break;
-        case '+':
-            NthMyChild(0)->printTeXStyle (os, precedence);
-            os << "+";
-            NthMyChild(1)->printTeXStyle (os, precedence);
-            break;
-        case '-':
-            NthMyChild(0)->printTeXStyle (os, precedence);
-            os << "-";
-            NthMyChild(1)->printTeXStyle (os, precedence);
-            break;
-        case '%':
-            // As we use \frac, we start again with precedence 0
-            os << "\\frac{";
-            NthMyChild(0)->printTeXStyle (os, 0);
-            os << "}{";
-            NthMyChild(1)->printTeXStyle (os, 0);
-            os << "}";
-            break;
-        case 'l':
-            os << "\log(";
-            NthMyChild(0)->printTeXStyle (os, precedence);
-            os << ")";
-            break;
-        case 'e':
-            os << "e^{";
-            NthMyChild(0)->printTeXStyle (os, precedence);
-            os << "}";
-            break;
-        default:
-            GPExitSystem ("MyGene::printTeXStyle",
-                          "Undefined function value 2");
-        }
+        static_cast<Function*>(node)->PrintTexStyle(this, os, precedence);
 
         // Do we need brackets?
-        if (lastPrecedence>precedence)
+        if (lastPrecedence > precedence) {
             os << "\\right)";
+        }
     }
 
     // We can't let the terminal print itself, because we want to modify
     // it a little bit
-    if (isTerminal ())
-        switch (node->value ())
-        {
-        case 'a':
-            os << "age";
-            break;
-        case 'v':
-            os << "visits";
-            break;
-        case 'c':
-            os << "changes";
-            break;
-        case '1':
-            os << "1";
-            break;
-        default:
-            GPExitSystem ("MyGene::printTeXStyle",
-                          "Undefined terminal value");
-        }
+    if(isTerminal()) {
+        static_cast<Terminal*>(node)->PrintTexStyle(os);
+        //GPExitSystem ("MyGene::printTeXStyle", "Undefined terminal value");
+    }
 }
 
 
 
 // Print a Gene.
-void MyGene::printOn (ostream& os)
-{
+void MyGene::printOn(ostream& os) {
     if (printTexStyle)
         printTeXStyle (os);
     else
@@ -254,12 +136,10 @@ void MyGene::printOn (ostream& os)
 // Print a GP. If we want a LaTeX-output, we must provide for the
 // equation environment, otherwise we simply call the print function
 // of our base class.
-void MyGP::printOn (ostream& os)
-{
+void MyGP::printOn(ostream& os) {
     // If we use LaTeX-style, we provide here for the right equation
     // overhead used for LaTeX.
-    if (printTexStyle)
-    {
+    if (printTexStyle) {
         tout << "\\begin{eqnarray}" << endl;
 
         // Print all ADF's, if any
@@ -269,7 +149,7 @@ void MyGP::printOn (ostream& os)
             if (n!=0)
                 os << "\\\\" << endl;
             os << "f_" << n+1 << " & = & ";
-            if ((current=NthGene (n)))
+            if ((current=NthGene(n)))
                 os << *current;
             else
                 os << " NONE";
@@ -285,90 +165,18 @@ void MyGP::printOn (ostream& os)
 }
 
 
-
-// This function is the divide with closure. Basically if you divide
-// anything by zero you get an error so we have to stop this
-// process. We check for a very small denominator and return a very
-// high value.
-inline double divide (double x, double y) {
-    if (fabs (y)<1e-6)
-    {
-        if (x*y<0.0)
-            return -1e6;
-        else
-            return 1e6;
-    }
-    else
-        return x/y;
-}
-
-inline double f_rlog (double x) {
-    double arg = 0.0;
-    arg = fabs ( x );
-    if ( arg <= 1.0)
-        return 0.0;
-    else
-        return log ( arg );
-}
-
 // We have the freedom to define this function in any way we like. In
 // this case, it takes the parameter x that represents the terminal X,
 // and returns the value of the expression. It's recursive of course.
-double MyGene::evaluate(Instance& url, int cycle, MyGP& gp)
-{
-    double ret;
-
-    if (isFunction ())
-        switch (node->value ())
-        {
-        case '*':
-            ret=NthMyChild(0)->evaluate (url, cycle, gp)
-                    * NthMyChild(1)->evaluate (url, cycle, gp);
-            break;
-        case '+':
-            ret=NthMyChild(0)->evaluate (url, cycle, gp)
-                    + NthMyChild(1)->evaluate (url, cycle, gp);
-            break;
-        case '-':
-            ret = NthMyChild(0)->evaluate (url, cycle, gp)
-                    - NthMyChild(1)->evaluate (url, cycle, gp);
-            break;
-        case '%':
-            // We use the function divide rather than "/" to ensure the
-            // closure property
-            ret = divide(NthMyChild(0)->evaluate (url, cycle, gp),
-                         NthMyChild(1)->evaluate (url, cycle, gp));
-            break;
-        case 'l':
-            ret = f_rlog(NthMyChild(0)->evaluate (url, cycle, gp));
-            break;
-        case 'e':
-            ret = exp(NthMyChild(0)->evaluate (url, cycle, gp));
-            break;
-        default:
-            std::cout << "Value: " << node->value() << std::endl;
-            GPExitSystem ("MyGene::evaluate", "Undefined function value");
-        }
-    if(isTerminal()) {
-        switch (node->value()) {
-        case 'a':
-            ret=url.GetAge(cycle);
-            break;
-        case 'v':
-            ret=url.visits;
-            break;
-        case 'c':
-            ret=url.changes;
-            break;
-        case '1':
-            ret=1.0;
-            break;
-        default:
-            GPExitSystem ("MyGene::evaluate", "Undefined terminal value");
-        }
+double MyGene::evaluate(Instance& url, int cycle) {
+    if (isFunction ()) {
+        return static_cast<Function*>(node)->Value(this, url, cycle);
     }
-    return ret;
+    if(isTerminal()) {
+        return static_cast<Terminal*>(node)->Value(url, cycle);
+    }
 }
+
 
 // Evaluate the fitness of a GP and save it into the GP class variable
 // stdFitness.
@@ -388,30 +196,29 @@ void MyGP::evaluate () {
 
 
 // Create function and terminal set
-void createNodeSet (GPAdfNodeSet& adfNs)
-{
+void createNodeSet (GPAdfNodeSet& adfNs) {
     // Reserve space for the node sets
     adfNs.reserveSpace (1);
 
     // Now define the function and terminal set for each ADF and place
     // function/terminal sets into overall ADF container
-    GPNodeSet& ns0=*new GPNodeSet (10);
-    adfNs.put (0, ns0);
+    GPNodeSet& ns0=*new GPNodeSet(10);
+    adfNs.put(0, ns0);
 
     // Define functions/terminals and place them into the appropriate
     // sets. Terminals take two arguments, functions three (the third
     // parameter is the number of arguments the function has)
-    ns0.putNode (*new GPNode ('+', "+", 2));
-    ns0.putNode (*new GPNode ('-', "-", 2));
-    ns0.putNode (*new GPNode ('*', "*", 2));
-    ns0.putNode (*new GPNode ('%', "%", 2));
-    ns0.putNode (*new GPNode ('l', "log", 1));
-    ns0.putNode (*new GPNode ('e', "exp", 1));
+    ns0.putNode(*new PlusFunction('+'));
+    ns0.putNode(*new MinusFunction('-'));
+    ns0.putNode(*new TimesFunction('*'));
+    ns0.putNode(*new DivisionFunction('%'));
+    ns0.putNode(*new LogFunction('l'));
+    ns0.putNode(*new ExpFunction('e'));
 
-    ns0.putNode (*new GPNode ('a', "age"));
-    ns0.putNode (*new GPNode ('c', "changes"));
-    ns0.putNode (*new GPNode ('v', "visits"));
-    ns0.putNode (*new GPNode ('1', "1"));
+    ns0.putNode(*new AgeTerminal('a'));
+    ns0.putNode(*new ChangesTerminal('c'));
+    ns0.putNode(*new VisitsTerminal('v'));
+    ns0.putNode(*new OneTerminal('1'));
 }
 
 

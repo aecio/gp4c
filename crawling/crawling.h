@@ -1,47 +1,6 @@
 #ifndef CRAWLING_H
 #define CRAWLING_H
 
-// symbreg.h
-
-/* ---------------------------------------------------------------
-
-Symbolic Regression
-
-An example for how to use gpc++ - The Genetic Programming Kernel
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
-any later version.
-
-This program is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-Copyright 1996, 1997 Thomas Weinbrenner
-
-For comments, improvements, additions (or even money !?) contact:
-
-Thomas Weinbrenner
-Grauensteinstr. 26
-35789 Laimbach
-Germany
-E-mail: thomasw@emk.e-technik.th-darmstadt.de
-WWW:    http://www.emk.e-technik.th-darmstadt/~thomasw
-
---------------------------------------------------------------- */
-
-// We are now inheriting the classes we want to change. These are the
-// three classes GPGene, GP and GPPopulation.  Read the documentation
-// for what has to be done here.  Remember it makes not a lot of sense
-// to implement Load/Save here, otherwise we should definitely have to
-// provide for the isA(), load(), save() and createObject() functions.
-
 #include <vector>
 #include <iostream>
 #include <string>
@@ -153,7 +112,7 @@ public:
   MyGene* NthMyChild (int n) {
     return (MyGene*) GPContainer::Nth (n); }
 
-  double evaluate (Instance& url, int cycle, MyGP& gp);
+  double evaluate(Instance& url, int cycle);
 };
 
 
