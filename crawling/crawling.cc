@@ -202,7 +202,7 @@ void createNodeSet (GPAdfNodeSet& adfNs) {
 
     // Now define the function and terminal set for each ADF and place
     // function/terminal sets into overall ADF container
-    GPNodeSet& ns0=*new GPNodeSet(10);
+    GPNodeSet& ns0=*new GPNodeSet(13);
     adfNs.put(0, ns0);
 
     // Define functions/terminals and place them into the appropriate
@@ -215,10 +215,13 @@ void createNodeSet (GPAdfNodeSet& adfNs) {
     ns0.putNode(*new LogFunction('l'));
     ns0.putNode(*new ExpFunction('e'));
 
-    ns0.putNode(*new AgeTerminal('a'));
-    ns0.putNode(*new ChangesTerminal('c'));
-    ns0.putNode(*new VisitsTerminal('v'));
-    ns0.putNode(*new OneTerminal('1'));
+    ns0.putNode(*new AgeTerminal('1'));
+    ns0.putNode(*new ChangesTerminal('2'));
+    ns0.putNode(*new VisitsTerminal('3'));
+    ns0.putNode(*new OneTerminal('4'));
+    ns0.putNode(*new ChangeRateTerminal('5'));
+    ns0.putNode(*new ChangeProbabilityTerminal('6'));
+    ns0.putNode(*new ChangeProbabilityAgeTerminal('7'));
 }
 
 

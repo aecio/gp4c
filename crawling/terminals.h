@@ -50,5 +50,38 @@ public:
     }
 };
 
+class ChangeRateTerminal : public Terminal {
+public:
+    ChangeRateTerminal(int id): Terminal(id, "change_rate") { }
+    double Value(Instance &url, int cycle) {
+        return url.GetChangeRate();
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "change\\_rate";
+    }
+};
+
+class ChangeProbabilityTerminal : public Terminal {
+public:
+    ChangeProbabilityTerminal(int id): Terminal(id, "change_prob") { }
+    double Value(Instance &url, int cycle) {
+        return url.GetChangeProbability();
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "change\\_prob";
+    }
+};
+
+class ChangeProbabilityAgeTerminal : public Terminal {
+public:
+    ChangeProbabilityAgeTerminal(int id): Terminal(id, "change_prob_age") { }
+    double Value(Instance &url, int cycle) {
+        return url.GetChangeProbabilityAge(cycle);
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "change\\_prob\\_age";
+    }
+};
+
 
 #endif // TERMINALS_H
