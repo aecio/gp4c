@@ -49,57 +49,91 @@ public:
 
 class WebArchiveDataset {
 public:
-    enum {TRAIN, TEST};
+    enum {TRAIN, TEST, PARTITION_URL, PARTITION_CYCLE};
 
     WebArchiveDataset() {}
-    WebArchiveDataset(const std::string& filename) {
-        Init(filename);
+    WebArchiveDataset(const std::string& filename, int mode, int partition) {
+        Init(filename, mode, partition);
     }
 
-    void Init(const std::string& filename) {
+    void ReadFile(const std::string& filename) {
+        std::string changes;
+        int host_id, page_id;
+        std::ifstream file(filename.c_str());
+        file >> host_id >> page_id >> changes;
+        while (file.good()) {
+            assert(changes.size() > 0);
+            dataset_.push_back(changes);
+            file >> host_id >> page_id >> changes;
+        }
+        file.close();
+    }
+
+    void Init(const std::string& filename, int mode, int partition) {
         std::cout << "Loading UCLA WebArchive dataset..." << std::endl;
         dataset_.clear();
         dataset_.reserve(300000);
-        std::string changes;
-        int url_id, page_id;
-        std::ifstream file(filename.c_str());
-        file >> url_id >> page_id >> changes;
-        while (file.good()) {
-            assert(changes.size() > 0);
-            if(changes.size() > 0)
-                dataset_.push_back(changes);
-            file >> url_id >> page_id >> changes;
-        }
+
+        ReadFile(filename);
+
         dataset_size = dataset_.size();
         dataset_cycles = dataset_[0].size();
-//        dataset_size = 50000;
-//        dataset_cycles = 60;
+//        dataset_size = 300000;
+//        dataset_cycles = 40;
+
         std::cout << "Loaded " << dataset_.size() << " instances "
                   << "from file " << filename << std::endl;
-        SetMode(TRAIN);
+        std::cout << "Using: " << std::endl
+                  << dataset_size << " instances." << std::endl
+                  << dataset_cycles << " cycles." << std::endl;
+
+        SetMode(mode, partition);
     }
 
-    void SetMode(int mode) {
-        mode_.n_instances = dataset_size;
-        mode_.n_cycles = dataset_cycles / 2;
-        if(mode == TRAIN) {
+    void SetMode(int mode, int partition) {
+        if(partition == PARTITION_URL) {
+            std::cout << "Dataset partition scheme: URL" << std::endl;
             mode_.first_cycle = 0;
-            std::cout << "Dataset in mode: TRAIN" << std::endl;
-        } else if(mode == TEST) {
-            mode_.first_cycle = dataset_cycles / 2;
-            std::cout << "Dataset in mode: TEST" << std::endl;
+            mode_.n_cycles = dataset_cycles;
+            mode_.n_instances = dataset_size / 2;
+            if(mode == TRAIN) {
+                mode_.first_instance = 0;
+                std::cout << "Dataset in mode: TRAIN" << std::endl;
+            } else if(mode == TEST) {
+                mode_.first_instance = dataset_size / 2;
+                std::cout << "Dataset in mode: TEST" << std::endl;
+            } else {
+                std::cerr << "You tried to set an unknown mode." << std::endl;
+            }
+        } else if(partition == PARTITION_CYCLE){
+            std::cout << "Dataset partition scheme: CYCLE" << std::endl;
+            mode_.first_instance = 0;
+            mode_.n_instances = dataset_size;
+            mode_.n_cycles = dataset_cycles / 2;
+            if(mode == TRAIN) {
+                mode_.first_cycle = 0;
+                std::cout << "Dataset in mode: TRAIN" << std::endl;
+            } else if(mode == TEST) {
+                mode_.first_cycle = dataset_cycles / 2;
+                std::cout << "Dataset in mode: TEST" << std::endl;
+            } else {
+                std::cerr << "You tried to set an unknown mode." << std::endl;
+            }
         } else {
-            std::cerr << "You tried to set an unknown mode." << std::endl;
+            std::cerr << "You tried to set an unknown partition." << std::endl;
         }
-        std::cout << "cycles:      " << mode_.n_cycles << std::endl;
-        std::cout << "intances:    "   << mode_.n_instances << std::endl;
-        std::cout << "cycles range: [" << mode_.first_cycle << ", "
-                  << mode_.first_cycle+mode_.n_instances << "]" << std::endl;
+        std::cout << "intances_range: ["
+                  << mode_.first_instance << ", "
+                  << mode_.first_instance+mode_.n_instances<< "]" << std::endl;
+        std::cout << "cycles_range: ["
+                  << mode_.first_cycle << ", "
+                  << mode_.first_cycle+mode_.n_cycles<< "]" << std::endl;
     }
 
-    bool ChangedIn(int url, int cycle) {
+    bool ChangedIn(int instance, int cycle) {
         cycle += mode_.first_cycle;
-        if(dataset_[url][cycle-1] == '1')
+        instance += mode_.first_instance;
+        if(dataset_[instance][cycle-1] == '1')
             return true;
         else
             return false;
@@ -107,14 +141,10 @@ public:
 
     int NumCycles() {
         return mode_.n_cycles;
-//        return dataset_[0].size();
-//        return 30;
     }
 
     int NumInstances() {
         return mode_.n_instances;
-//        return 60000;
-//        return dataset_.size();
     }
 
     std::vector<std::string> dataset_;
@@ -123,6 +153,7 @@ private:
         int n_instances;
         int n_cycles;
         int first_cycle;
+        int first_instance;
     };
     int dataset_size;
     int dataset_cycles;

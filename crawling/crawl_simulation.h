@@ -11,7 +11,7 @@ class CrawlSimulation {
 public:
     CrawlSimulation(WebArchiveDataset* dataset_): dataset(dataset_) { }
 
-    void Run(Scorer* scorer, int k);
+    void Run(Scorer* scorer, int k, int warm_up);
     double AverageErrorRate();
 
     const std::vector<double>& ErrorRates() {
@@ -23,7 +23,7 @@ private:
     WebArchiveDataset* dataset;
 };
 
-inline void CrawlSimulation::Run(Scorer* scorer, int k) {
+inline void CrawlSimulation::Run(Scorer* scorer, int k, int warm_up) {
 
     error_rate.clear();
     error_rate.reserve(k);
@@ -35,7 +35,17 @@ inline void CrawlSimulation::Run(Scorer* scorer, int k) {
         repository[i]->last_visit = 0;
     }
 
-    for (int cycle = 1; cycle <= dataset->NumCycles(); ++cycle) {
+    int cycle = 1;
+    for (; cycle < warm_up; ++cycle) {
+        for (int i = 0; i < dataset->NumInstances(); ++i) {
+            repository[i]->visits++;
+            repository[i]->last_visit = cycle;
+            if(dataset->ChangedIn(repository[i]->id, cycle)) {
+                repository[i]->changes++;
+            }
+        }
+    }
+    for (; cycle <= dataset->NumCycles(); ++cycle) {
         for (int i = 0; i < dataset->NumInstances(); ++i) {
             repository[i]->score = scorer->Score(*repository[i], cycle);
         }

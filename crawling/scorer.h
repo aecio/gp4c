@@ -38,6 +38,14 @@ public:
 private:
 };
 
+class ChangeRateScorer : public Scorer {
+public:
+    inline double Score(Instance& url, int cycle) {
+        return url.GetChangeRate();
+    }
+private:
+};
+
 class ChangeProbScorer : public Scorer {
 public:
     inline double Score(Instance& url, int cycle) {

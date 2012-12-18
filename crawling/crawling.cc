@@ -25,6 +25,7 @@ typedef std::ostringstream ostrstream;
 // Defines the dataset
 WebArchiveDataset dataset;
 int resources; // Resources in functions of URL that can be crawled
+int warm_up; // Nuber of initial revisits to get basic statistics of change
 
 // The TeX-file
 ofstream tout;
@@ -184,7 +185,7 @@ void MyGP::evaluate () {
     GPScorer scorer(this);
 
     CrawlSimulation simulator(&dataset);
-    simulator.Run(&scorer, resources);
+    simulator.Run(&scorer, resources, warm_up);
 
     double avg_error_rate = simulator.AverageErrorRate();
 
@@ -237,12 +238,17 @@ int main () {
     // and we don't know it's there.
     set_new_handler (newHandler);
 
+    int partition_scheme = WebArchiveDataset::PARTITION_URL;
     // Set up the dataset and crawling resources
-    dataset.Init("datasets/synthetic.all.norm");
+    dataset.Init("datasets/synthetic.all.norm",
+                 WebArchiveDataset::TRAIN, partition_scheme);
+
     resources = dataset.NumInstances()*0.05;
-    cout << "Number URLS in dataset:  " << dataset.NumInstances() << endl;
+    warm_up = 3;
+
     cout << "Crawling resources used: " << resources << endl;
-    cout << "Number of cycles:        " << dataset.NumCycles() << endl;
+    cout << "Warm-up initial visits: "  << warm_up << endl;
+
 
     cout << "========= GPC++ Config ==========" << endl;
 
@@ -341,12 +347,15 @@ int main () {
          << InfoFileName << ".tex,"
          << InfoFileName << ".stc." << endl;
 
+    cout << endl << *pop->NthGP(pop->bestOfPopulation) << endl;
+
     cout << "============== Starting Test ===============" << endl;
 
-    dataset.SetMode(WebArchiveDataset::TEST);
+    dataset.SetMode(WebArchiveDataset::TEST, partition_scheme);
 
     RandomScorer s_random;
     AgeScorer s_age;
+    ChangeRateScorer s_change_rate;
     ChangeProbScorer s_change_prob;
     ChangeProbAgeScorer s_change_prob_age;
     GPScorer s_gp((MyGP*)pop->NthGP(pop->bestOfPopulation));
@@ -355,33 +364,38 @@ int main () {
 
     cout << "============ Average Error Rate =============" << endl;
 
-    simulator.Run(&s_random, resources);
+    simulator.Run(&s_random, resources, warm_up);
     std::vector<double> error_random = simulator.ErrorRates();
     cout << "random:          " << simulator.AverageErrorRate() << endl;
 
-    simulator.Run(&s_age, resources);
+    simulator.Run(&s_age, resources, warm_up);
     std::vector<double> error_age = simulator.ErrorRates();
     cout << "age:             " << simulator.AverageErrorRate() << endl;
 
-    simulator.Run(&s_change_prob, resources);
+    simulator.Run(&s_change_rate, resources, warm_up);
+    std::vector<double> error_change_rate = simulator.ErrorRates();
+    cout << "change_rate:     " << simulator.AverageErrorRate() << endl;
+
+    simulator.Run(&s_change_prob, resources, warm_up);
     std::vector<double> error_change_prob = simulator.ErrorRates();
     cout << "change_prob:     " << simulator.AverageErrorRate() << endl;
 
-    simulator.Run(&s_change_prob_age, resources);
+    simulator.Run(&s_change_prob_age, resources, warm_up);
     std::vector<double> error_change_prob_age = simulator.ErrorRates();
     cout << "change_prob_age: " << simulator.AverageErrorRate() << endl;
 
-    simulator.Run(&s_gp, resources);
+    simulator.Run(&s_gp, resources, warm_up);
     std::vector<double> error_gp = simulator.ErrorRates();
     cout << "best_gp:         " << simulator.AverageErrorRate() << endl;
 
     cout << "============= Error Rate per Cycle =============" << endl;
 
-    cout << "random; age; change_prob; change_prob_age; best_gp;" << endl;
+    cout << "random; age; change_rate; change_prob; change_prob_age; best_gp;" << endl;
 
-    for(int i=0; i<dataset.NumCycles(); ++i) {
+    for(int i=0; i<dataset.NumCycles()-warm_up; ++i) {
         cout << error_random[i] << "; ";
         cout << error_age[i] << "; ";
+        cout << error_change_rate[i] << "; ";
         cout << error_change_prob[i] << "; ";
         cout << error_change_prob_age[i] << "; ";
         cout << error_gp[i] << "; ";
