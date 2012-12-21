@@ -197,11 +197,11 @@ void MyGP::evaluate() {
 // Create function and terminal set
 void createNodeSet (GPAdfNodeSet& adfNs) {
     // Reserve space for the node sets
-    adfNs.reserveSpace (1);
+    adfNs.reserveSpace(1);
 
     // Now define the function and terminal set for each ADF and place
     // function/terminal sets into overall ADF container
-    GPNodeSet& ns0=*new GPNodeSet(13);
+    GPNodeSet& ns0 = *new GPNodeSet(14);
     adfNs.put(0, ns0);
 
     // Define functions/terminals and place them into the appropriate
@@ -213,6 +213,7 @@ void createNodeSet (GPAdfNodeSet& adfNs) {
     ns0.putNode(*new DivisionFunction('%'));
     ns0.putNode(*new LogFunction('l'));
     ns0.putNode(*new ExpFunction('e'));
+    ns0.putNode(*new PowFunction('p'));
 
     ns0.putNode(*new AgeTerminal('1'));
     ns0.putNode(*new ChangesTerminal('2'));

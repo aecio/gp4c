@@ -171,4 +171,29 @@ public:
     }
 };
 
+class PowFunction : public Function {
+    public:
+        PowFunction(int id): Function(id, "pow", 2) { }
+        double Value(MyGene* gene, URL &url, int cycle) {
+            return pow( gene->NthMyChild(0)->evaluate(url, cycle),
+                        gene->NthMyChild(1)->evaluate (url, cycle) );
+        }
+        void PrintMathStyle(MyGene* gene, std::ostream& os, int precedence) {
+            os << "pow(";
+            gene->NthMyChild(0)->printMathStyle (os, precedence);
+            os << ",";
+            gene->NthMyChild(1)->printMathStyle (os, precedence);
+            os << ")";
+        }
+        void PrintTexStyle(MyGene* gene, std::ostream& os, int precedence) {
+            os << "{";
+            gene->NthMyChild(0)->printTeXStyle(os, precedence);
+            os << "}^{";
+            gene->NthMyChild(1)->printTeXStyle(os, precedence);
+            os << "}";
+        }
+        int Precedence() {
+            return 2;
+        }
+    };
 #endif // FUNCTIONS_H
