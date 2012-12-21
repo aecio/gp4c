@@ -7,23 +7,23 @@
 #include <fstream>
 #include <vector>
 
-class Instance {
+class URL {
 public:
-    Instance(): id(0), last_visit(0), visits(0), changes(0), score(0) { }
+    URL(): id(0), last_visit(0), visits(0), changes(0), score(0) { }
     int id;
     int last_visit;
     int visits;
     int changes;
     double score;
 
-    bool operator<(const Instance &other) const {
+    bool operator<(const URL &other) const {
         if (this->score > other.score)
             return true;
         else
             return false;
     }
 
-    static bool ComparePtr(Instance* a, Instance* b) {
+    static bool ComparePtr(URL* a, URL* b) {
         if (a->score > b->score)
             return true;
         else
@@ -47,117 +47,155 @@ public:
     }
 };
 
+
+class Dataset {
+public:
+
+    class Instance {
+    public:
+        Instance() { }
+        Instance(const std::string& changes): changes_(changes) { }
+
+        bool ChangedIn(int cycle) const {
+            if(changes_[cycle-1] == '1')
+                return true;
+            else
+                return false;
+        }
+
+        int NumCycles() const {
+            return changes_.size();
+        }
+
+    private:
+        std::string changes_;
+    };
+
+    const Instance* instance(int i) const {
+        return instances_[i];
+    }
+
+    int NumInstances() const {
+        return instances_.size();
+    }
+
+    int NumCycles() const {
+        return instances_[0]->NumCycles();
+    }
+
+    void Add(const Instance* instance) {
+        instances_.push_back(instance);
+    }
+
+    Dataset testCV(int num_folds, int current_fold) {
+
+        int offset;
+        int fold_size = this->NumInstances() / num_folds;
+        if (current_fold < this->NumInstances() % num_folds){
+            fold_size++;
+            offset = current_fold;
+        } else {
+            offset = this->NumInstances() % num_folds;
+        }
+
+        Dataset test;
+        int first = current_fold * (this->NumInstances() / num_folds) + offset;
+        CopyInstances(first, test, fold_size);
+        cout << "Created cross-validation test set " << current_fold
+             << " of " << num_folds << " with "
+             << test.NumInstances() << " instances." << endl;
+        return test;
+    }
+
+    Dataset trainCV(int num_folds, int current_fold) {
+
+        int offset;
+        int fold_size = this->NumInstances() / num_folds;
+        if (current_fold < this->NumInstances() % num_folds) {
+          fold_size++;
+          offset = current_fold;
+        } else {
+          offset = this->NumInstances() % num_folds;
+        }
+        Dataset train;
+        int first = current_fold * (this->NumInstances() / num_folds) + offset;
+
+        CopyInstances(0, train, first);
+        CopyInstances(first + fold_size,
+                      train,
+                      this->NumInstances() - first - fold_size);
+        cout << "Created cross-validation train set " << current_fold
+             << " of " << num_folds << " with "
+             << train.NumInstances() << " instances." << endl;
+        return train;
+    }
+
+private:
+    void CopyInstances(int from, Dataset& dest, int num) {
+      for (int i = 0; i < num; i++) {
+        dest.Add(instance(from + i));
+      }
+    }
+
+    std::vector<const Instance*> instances_;
+};
+
 class WebArchiveDataset {
 public:
-    enum {TRAIN, TEST, PARTITION_URL, PARTITION_CYCLE};
+    enum {PARTITION_URL, PARTITION_CYCLE};
 
     WebArchiveDataset() {}
-    WebArchiveDataset(const std::string& filename, int mode, int partition) {
-        Init(filename, mode, partition);
+    WebArchiveDataset(const std::string& filename) {
+        Init(filename);
+    }
+
+    ~WebArchiveDataset() {
+        if(data_) {
+            delete[] data_;
+        }
+    }
+
+    void Init(const std::string& filename) {
+        std::cout << "Loading UCLA WebArchive dataset..." << std::endl;
+        ReadFile(filename);
+
+        std::cout << "Loaded " << dataset_.NumInstances()
+                  << " instances and "
+                  << dataset_.NumCycles() << " cycles "
+                  << "from file " << filename << std::endl;
     }
 
     void ReadFile(const std::string& filename) {
+
+        std::ifstream file(filename.c_str());
+
         std::string changes;
         int host_id, page_id;
-        std::ifstream file(filename.c_str());
         file >> host_id >> page_id >> changes;
+
+        std::vector<std::string> temp_data;
         while (file.good()) {
             assert(changes.size() > 0);
-            dataset_.push_back(changes);
+
+            // Max values
+            if(temp_data.size() >= 10000) break;       // max instances
+            if(changes.size() > 40) changes.resize(40);   // max cycles
+
+            temp_data.push_back(changes);
             file >> host_id >> page_id >> changes;
         }
         file.close();
-    }
 
-    void Init(const std::string& filename, int mode, int partition) {
-        std::cout << "Loading UCLA WebArchive dataset..." << std::endl;
-        dataset_.clear();
-        dataset_.reserve(300000);
-
-        ReadFile(filename);
-
-        dataset_size = dataset_.size();
-        dataset_cycles = dataset_[0].size();
-//        dataset_size = 300000;
-//        dataset_cycles = 40;
-
-        std::cout << "Loaded " << dataset_.size() << " instances "
-                  << "from file " << filename << std::endl;
-        std::cout << "Using: " << std::endl
-                  << dataset_size << " instances." << std::endl
-                  << dataset_cycles << " cycles." << std::endl;
-
-        SetMode(mode, partition);
-    }
-
-    void SetMode(int mode, int partition) {
-        if(partition == PARTITION_URL) {
-            std::cout << "Dataset partition scheme: URL" << std::endl;
-            mode_.first_cycle = 0;
-            mode_.n_cycles = dataset_cycles;
-            mode_.n_instances = dataset_size / 2;
-            if(mode == TRAIN) {
-                mode_.first_instance = 0;
-                std::cout << "Dataset in mode: TRAIN" << std::endl;
-            } else if(mode == TEST) {
-                mode_.first_instance = dataset_size / 2;
-                std::cout << "Dataset in mode: TEST" << std::endl;
-            } else {
-                std::cerr << "You tried to set an unknown mode." << std::endl;
-            }
-        } else if(partition == PARTITION_CYCLE){
-            std::cout << "Dataset partition scheme: CYCLE" << std::endl;
-            mode_.first_instance = 0;
-            mode_.n_instances = dataset_size;
-            mode_.n_cycles = dataset_cycles / 2;
-            if(mode == TRAIN) {
-                mode_.first_cycle = 0;
-                std::cout << "Dataset in mode: TRAIN" << std::endl;
-            } else if(mode == TEST) {
-                mode_.first_cycle = dataset_cycles / 2;
-                std::cout << "Dataset in mode: TEST" << std::endl;
-            } else {
-                std::cerr << "You tried to set an unknown mode." << std::endl;
-            }
-        } else {
-            std::cerr << "You tried to set an unknown partition." << std::endl;
+        data_ = new Dataset::Instance[temp_data.size()];
+        for (int i = 0; i < temp_data.size(); ++i) {
+            data_[i] = Dataset::Instance(temp_data[i]);
+            dataset_.Add(&data_[i]);
         }
-        std::cout << "intances_range: ["
-                  << mode_.first_instance << ", "
-                  << mode_.first_instance+mode_.n_instances<< "]" << std::endl;
-        std::cout << "cycles_range: ["
-                  << mode_.first_cycle << ", "
-                  << mode_.first_cycle+mode_.n_cycles<< "]" << std::endl;
     }
 
-    bool ChangedIn(int instance, int cycle) {
-        cycle += mode_.first_cycle;
-        instance += mode_.first_instance;
-        if(dataset_[instance][cycle-1] == '1')
-            return true;
-        else
-            return false;
-    }
-
-    int NumCycles() {
-        return mode_.n_cycles;
-    }
-
-    int NumInstances() {
-        return mode_.n_instances;
-    }
-
-    std::vector<std::string> dataset_;
+    Dataset dataset_;
 private:
-    struct mode_t {
-        int n_instances;
-        int n_cycles;
-        int first_cycle;
-        int first_instance;
-    };
-    int dataset_size;
-    int dataset_cycles;
-    mode_t mode_;
+    Dataset::Instance* data_;
 };
 
 #endif // DATASET_H

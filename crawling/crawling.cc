@@ -23,7 +23,11 @@
 typedef std::ostringstream ostrstream;
 
 // Defines the dataset
+int partition_scheme;
 WebArchiveDataset dataset;
+Dataset train_set;
+Dataset test_set;
+
 int resources; // Resources in functions of URL that can be crawled
 int warm_up; // Nuber of initial revisits to get basic statistics of change
 
@@ -59,7 +63,6 @@ struct GPConfigVarInformation configArray[]=
 };
 
 
-
 // Print out a gene in typical math style. Don't be confused, I don't
 // make a difference whether this gene is the main program or an ADF,
 // I assume the internal structure is correct.
@@ -88,7 +91,6 @@ void MyGene::printMathStyle (ostream& os, int lastPrecedence) {
         static_cast<Terminal*>(node)->PrintMathStyle(os);
     }
 }
-
 
 
 // Print out a gene in LaTeX-style. Don't be confused, I don't make a
@@ -123,14 +125,23 @@ void MyGene::printTeXStyle(ostream& os, int lastPrecedence) {
     }
 }
 
-
-
 // Print a Gene.
 void MyGene::printOn(ostream& os) {
     if (printTexStyle)
         printTeXStyle (os);
     else
         printMathStyle (os);
+}
+
+
+// We have the freedom to define this function in any way we like.
+double MyGene::evaluate(URL& url, int cycle) {
+    if(isFunction()) {
+        return static_cast<Function*>(node)->Value(this, url, cycle);
+    }
+    if(isTerminal()) {
+        return static_cast<Terminal*>(node)->Value(url, cycle);
+    }
 }
 
 
@@ -167,24 +178,13 @@ void MyGP::printOn(ostream& os) {
 }
 
 
-// We have the freedom to define this function in any way we like.
-double MyGene::evaluate(Instance& url, int cycle) {
-    if(isFunction()) {
-        return static_cast<Function*>(node)->Value(this, url, cycle);
-    }
-    if(isTerminal()) {
-        return static_cast<Terminal*>(node)->Value(url, cycle);
-    }
-}
-
-
 // Evaluate the fitness of a GP and save it into the GP class variable
 // stdFitness.
-void MyGP::evaluate () {
+void MyGP::evaluate() {
 
     GPScorer scorer(this);
 
-    CrawlSimulation simulator(&dataset);
+    CrawlSimulation simulator(&train_set);
     simulator.Run(&scorer, resources, warm_up);
 
     double avg_error_rate = simulator.AverageErrorRate();
@@ -192,7 +192,6 @@ void MyGP::evaluate () {
     // add a slight penalization for long functions
     stdFitness = avg_error_rate + ( length()*0.0001 );
 }
-
 
 
 // Create function and terminal set
@@ -225,28 +224,36 @@ void createNodeSet (GPAdfNodeSet& adfNs) {
 }
 
 
-
 void newHandler () {
     cerr << "\nFatal error: Out of memory." << endl;
     exit (1);
 }
 
 
+int main(int argc, char** argv) {
+    if(argc != 2) {
+        cerr << "Usage: "<< argv[0] << " <dataset_file>" << endl;
+        exit(1);
+    }
+    std::string filename = argv[1];
 
-int main () {
     // We set up a new-handler, because we might need a lot of memory,
     // and we don't know it's there.
     set_new_handler (newHandler);
 
-    int partition_scheme = WebArchiveDataset::PARTITION_URL;
-    // Set up the dataset and crawling resources
-    dataset.Init("datasets/synthetic.all.norm",
-                 WebArchiveDataset::TRAIN, partition_scheme);
 
-    resources = dataset.NumInstances()*0.05;
+    // Set up the dataset and crawling resources
+    dataset.Init(filename);
+
+    test_set = dataset.dataset_.testCV(3, 0);
+    train_set = dataset.dataset_.trainCV(3, 0);
+
+    double resources_percent = 0.05;
+    resources = test_set.NumInstances()*resources_percent;
     warm_up = 3;
 
-    cout << "Crawling resources used: " << resources << endl;
+    cout << "Crawling resources used: " << resources
+         << " ("<<resources_percent*100<<"%)" << endl;
     cout << "Warm-up initial visits: "  << warm_up << endl;
 
 
@@ -342,16 +349,9 @@ int main () {
          << InfoFileName << ".tex,"
          << InfoFileName << ".stc." << endl;
 
-    cout << "\nResults are in "
-         << InfoFileName << ".dat,"
-         << InfoFileName << ".tex,"
-         << InfoFileName << ".stc." << endl;
-
     cout << endl << *pop->NthGP(pop->bestOfPopulation) << endl;
 
     cout << "============== Starting Test ===============" << endl;
-
-    dataset.SetMode(WebArchiveDataset::TEST, partition_scheme);
 
     RandomScorer s_random;
     AgeScorer s_age;
@@ -360,7 +360,7 @@ int main () {
     ChangeProbAgeScorer s_change_prob_age;
     GPScorer s_gp((MyGP*)pop->NthGP(pop->bestOfPopulation));
 
-    CrawlSimulation simulator(&dataset);
+    CrawlSimulation simulator(&test_set);
 
     cout << "============ Average Error Rate =============" << endl;
 
@@ -392,7 +392,7 @@ int main () {
 
     cout << "random; age; change_rate; change_prob; change_prob_age; best_gp;" << endl;
 
-    for(int i=0; i<dataset.NumCycles()-warm_up; ++i) {
+    for(int i=0; i < test_set.NumCycles()-warm_up; ++i) {
         cout << error_random[i] << "; ";
         cout << error_age[i] << "; ";
         cout << error_change_rate[i] << "; ";

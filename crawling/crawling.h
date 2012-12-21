@@ -8,8 +8,7 @@
 #include <cmath>
 
 class MyGP;
-class Instance;
-
+class URL;
 
 class MyGene : public GPGene {
 public:
@@ -27,7 +26,7 @@ public:
   MyGene* NthMyChild (int n) {
     return (MyGene*) GPContainer::Nth (n); }
 
-  double evaluate(Instance& url, int cycle);
+  double evaluate(URL& url, int cycle);
 };
 
 
@@ -44,12 +43,14 @@ public:
 
   MyGene* NthMyGene (int n) {
     return (MyGene*) GPContainer::Nth (n); }
-  virtual void evaluate ();
+  virtual void evaluate();
+
+private:
+  double avg_error_rate_train_;
 };
 
 
-class MyPopulation : public GPPopulation
-{
+class MyPopulation : public GPPopulation {
 public:
   MyPopulation (GPVariables& GPVar_, GPAdfNodeSet& adfNs_) :
     GPPopulation (GPVar_, adfNs_) {}
@@ -65,4 +66,4 @@ public:
 };
 
 
-#endif CRAWLING_H
+#endif // CRAWLING_H

@@ -15,13 +15,13 @@ public:
     virtual void PrintTexStyle(std::ostream& os) {
         os << representation;
     }
-    virtual double Value(Instance& url, int cycle) = 0;
+    virtual double Value(URL& url, int cycle) = 0;
 };
 
 class AgeTerminal : public Terminal {
 public:
     AgeTerminal(int id): Terminal(id, "age") { }
-    double Value(Instance &url, int cycle) {
+    double Value(URL &url, int cycle) {
         return url.GetAge(cycle);
     }
 };
@@ -29,7 +29,7 @@ public:
 class ChangesTerminal : public Terminal {
 public:
     ChangesTerminal(int id): Terminal(id, "changes") { }
-    double Value(Instance &url, int cycle) {
+    double Value(URL &url, int cycle) {
         return url.changes;
     }
 };
@@ -37,7 +37,7 @@ public:
 class VisitsTerminal : public Terminal {
 public:
     VisitsTerminal(int id): Terminal(id, "visits") { }
-    double Value(Instance &url, int cycle) {
+    double Value(URL &url, int cycle) {
         return url.visits;
     }
 };
@@ -45,7 +45,7 @@ public:
 class OneTerminal : public Terminal {
 public:
     OneTerminal(int id): Terminal(id, "1") { }
-    double Value(Instance &url, int cycle) {
+    double Value(URL &url, int cycle) {
         return 1.0;
     }
 };
@@ -53,7 +53,7 @@ public:
 class ChangeRateTerminal : public Terminal {
 public:
     ChangeRateTerminal(int id): Terminal(id, "change_rate") { }
-    double Value(Instance &url, int cycle) {
+    double Value(URL &url, int cycle) {
         return url.GetChangeRate();
     }
     void PrintTexStyle(std::ostream& os) {
@@ -64,7 +64,7 @@ public:
 class ChangeProbabilityTerminal : public Terminal {
 public:
     ChangeProbabilityTerminal(int id): Terminal(id, "change_prob") { }
-    double Value(Instance &url, int cycle) {
+    double Value(URL &url, int cycle) {
         return url.GetChangeProbability();
     }
     void PrintTexStyle(std::ostream& os) {
@@ -75,7 +75,7 @@ public:
 class ChangeProbabilityAgeTerminal : public Terminal {
 public:
     ChangeProbabilityAgeTerminal(int id): Terminal(id, "change_prob_age") { }
-    double Value(Instance &url, int cycle) {
+    double Value(URL &url, int cycle) {
         return url.GetChangeProbabilityAge(cycle);
     }
     void PrintTexStyle(std::ostream& os) {

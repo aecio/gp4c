@@ -11,7 +11,7 @@ public:
     Function(int id, const char* name, int n_args): GPNode(id, (char*) name, n_args) { }
     virtual void PrintMathStyle(MyGene* gene, std::ostream& os, int precedence) = 0;
     virtual void PrintTexStyle(MyGene* gene, std::ostream& os, int precedence) = 0;
-    virtual double Value(MyGene* gene, Instance &url, int cycle) = 0;
+    virtual double Value(MyGene* gene, URL &url, int cycle) = 0;
     virtual int Precedence() = 0;
 protected:
     void PrintMathStyle1Arg(MyGene* gene, std::ostream& os, int precedence) {
@@ -34,7 +34,7 @@ protected:
 class PlusFunction : public Function {
 public:
     PlusFunction(int id): Function(id, "+", 2) { }
-    double Value(MyGene* gene, Instance &url, int cycle) {
+    double Value(MyGene* gene, URL &url, int cycle) {
         return gene->NthMyChild(0)->evaluate(url, cycle)
                 + gene->NthMyChild(1)->evaluate (url, cycle);
     }
@@ -52,7 +52,7 @@ public:
 class MinusFunction : public Function {
 public:
     MinusFunction(int id): Function(id, "-", 2) { }
-    double Value(MyGene* gene, Instance &url, int cycle) {
+    double Value(MyGene* gene, URL &url, int cycle) {
         return gene->NthMyChild(0)->evaluate(url, cycle)
                 - gene->NthMyChild(1)->evaluate (url, cycle);
     }
@@ -70,7 +70,7 @@ public:
 class TimesFunction : public Function {
 public:
     TimesFunction(int id): Function(id, "*", 2) { }
-    double Value(MyGene* gene, Instance &url, int cycle) {
+    double Value(MyGene* gene, URL &url, int cycle) {
         return gene->NthMyChild(0)->evaluate(url, cycle)
                 * gene->NthMyChild(1)->evaluate (url, cycle);
     }
@@ -90,7 +90,7 @@ public:
 class DivisionFunction : public Function {
 public:
     DivisionFunction(int id): Function(id, "%", 2) { }
-    double Value(MyGene* gene, Instance &url, int cycle) {
+    double Value(MyGene* gene, URL &url, int cycle) {
         return divide(gene->NthMyChild(0)->evaluate(url, cycle),
                       gene->NthMyChild(1)->evaluate (url, cycle));
     }
@@ -128,7 +128,7 @@ private:
 class LogFunction : public Function {
 public:
     LogFunction(int id): Function(id, "log", 1) { }
-    double Value(MyGene* gene, Instance &url, int cycle) {
+    double Value(MyGene* gene, URL &url, int cycle) {
         return safe_log(gene->NthMyChild(0)->evaluate(url, cycle));
     }
     void PrintMathStyle(MyGene* gene, std::ostream& os, int precedence) {
@@ -155,7 +155,7 @@ private:
 class ExpFunction : public Function {
 public:
     ExpFunction(int id): Function(id, "exp", 1) { }
-    double Value(MyGene* gene, Instance &url, int cycle) {
+    double Value(MyGene* gene, URL &url, int cycle) {
         return exp(gene->NthMyChild(0)->evaluate(url, cycle));
     }
     void PrintMathStyle(MyGene* gene, std::ostream& os, int precedence) {
