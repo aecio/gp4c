@@ -7,4 +7,6 @@
 *.o
 *.a
 GPCpp.*
+*.creator.user
+result.*
 crawling/datasets/synthetic.all.norm
