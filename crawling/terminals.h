@@ -30,7 +30,7 @@ class ChangesTerminal : public Terminal {
 public:
     ChangesTerminal(int id): Terminal(id, "changes") { }
     double Value(URL &url, int cycle) {
-        return url.changes;
+        return url.changes();
     }
 };
 
@@ -38,7 +38,7 @@ class VisitsTerminal : public Terminal {
 public:
     VisitsTerminal(int id): Terminal(id, "visits") { }
     double Value(URL &url, int cycle) {
-        return url.visits;
+        return url.visits();
     }
 };
 
@@ -72,16 +72,48 @@ public:
     }
 };
 
-class ChangeProbabilityAgeTerminal : public Terminal {
+class NADChangeRateTerminal : public Terminal {
 public:
-    ChangeProbabilityAgeTerminal(int id): Terminal(id, "change_prob_age") { }
+    NADChangeRateTerminal(int id): Terminal(id, "nad_change_rate") { }
     double Value(URL &url, int cycle) {
-        return url.GetChangeProbabilityAge(cycle);
+        return url.GetNADChangeRate(cycle);
     }
     void PrintTexStyle(std::ostream& os) {
-        os << "change\\_prob\\_age";
+        os << "nad\\_change\\_rate";
     }
 };
 
+class SADChangeRateTerminal : public Terminal {
+public:
+    SADChangeRateTerminal(int id): Terminal(id, "sad_change_rate") { }
+    double Value(URL &url, int cycle) {
+        return url.GetSADChangeRate(cycle);
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "sad\\_change\\_rate";
+    }
+};
+
+class AADChangeRateTerminal : public Terminal {
+public:
+    AADChangeRateTerminal(int id): Terminal(id, "aad_change_rate") { }
+    double Value(URL &url, int cycle) {
+        return url.GetAADChangeRate(cycle);
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "aad\\_change\\_rate";
+    }
+};
+
+class GADChangeRateTerminal : public Terminal {
+public:
+    GADChangeRateTerminal(int id): Terminal(id, "gad_change_rate") { }
+    double Value(URL &url, int cycle) {
+        return url.GetGADChangeRate(cycle);
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "gad\\_change\\_rate";
+    }
+};
 
 #endif // TERMINALS_H

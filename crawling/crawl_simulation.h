@@ -6,6 +6,7 @@
 
 #include "dataset.h"
 #include "scorer.h"
+#include "url.h"
 
 class CrawlSimulation {
 public:
@@ -32,16 +33,15 @@ inline void CrawlSimulation::Run(Scorer* scorer, int k, int warm_up) {
     for (int i = 0; i < dataset->NumInstances(); ++i) {
         repository[i] = new URL();
         repository[i]->id = i;
-        repository[i]->last_visit = 0;
     }
 
     int cycle = 1;
     for (; cycle < warm_up; ++cycle) {
         for (int i = 0; i < dataset->NumInstances(); ++i) {
-            repository[i]->visits++;
-            repository[i]->last_visit = cycle;
             if( dataset->instance(repository[i]->id)->ChangedIn(cycle) ) {
-                repository[i]->changes++;
+                repository[i]->Update(cycle, true);
+            } else {
+                repository[i]->Update(cycle, false);
             }
         }
     }
@@ -53,11 +53,10 @@ inline void CrawlSimulation::Run(Scorer* scorer, int k, int warm_up) {
                           repository.end(), URL::ComparePtr);
         double errors = 0;
         for (int i = 0; i < k; ++i) {
-            repository[i]->visits++;
-            repository[i]->last_visit = cycle;
             if( dataset->instance(repository[i]->id)->ChangedIn(cycle) ) {
-                repository[i]->changes++;
+                repository[i]->Update(cycle, true);
             } else {
+                repository[i]->Update(cycle, false);
                 errors++;
             }
         }

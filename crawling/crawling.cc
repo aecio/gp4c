@@ -3,11 +3,9 @@
 #include <sstream>
 #include <algorithm>
 #include <vector>
-
 #include <stdlib.h>
-#include <new>    // For the new-handler
-#include <math.h>   // fabs()
-#include <string.h>
+#include <new> // For the new-handler
+#include <cstring>
 
 // Include header file of genetic programming system.
 #include "gp.h" 
@@ -16,15 +14,16 @@
 #include "crawling.h"
 #include "crawl_simulation.h"
 #include "dataset.h"
+#include "functions.h"
 #include "scorer.h"
 #include "terminals.h"
-#include "functions.h"
+#include "url.h"
 
 typedef std::ostringstream ostrstream;
 
 // Defines the dataset
 int partition_scheme;
-WebArchiveDataset dataset;
+WebArchiveDataset data_file;
 Dataset train_set;
 Dataset test_set;
 
@@ -190,7 +189,7 @@ void MyGP::evaluate() {
     double avg_error_rate = simulator.AverageErrorRate();
 
     // add a slight penalization for long functions
-    stdFitness = avg_error_rate + ( length()*0.0001 );
+    stdFitness = avg_error_rate /* + ( length()*0.0001 ) */;
 }
 
 
@@ -201,7 +200,7 @@ void createNodeSet (GPAdfNodeSet& adfNs) {
 
     // Now define the function and terminal set for each ADF and place
     // function/terminal sets into overall ADF container
-    GPNodeSet& ns0 = *new GPNodeSet(14);
+    GPNodeSet& ns0 = *new GPNodeSet(17);
     adfNs.put(0, ns0);
 
     // Define functions/terminals and place them into the appropriate
@@ -215,15 +214,56 @@ void createNodeSet (GPAdfNodeSet& adfNs) {
     ns0.putNode(*new ExpFunction('e'));
     ns0.putNode(*new PowFunction('p'));
 
-    ns0.putNode(*new AgeTerminal('1'));
-    ns0.putNode(*new ChangesTerminal('2'));
-    ns0.putNode(*new VisitsTerminal('3'));
-    ns0.putNode(*new OneTerminal('4'));
-    ns0.putNode(*new ChangeRateTerminal('5'));
-    ns0.putNode(*new ChangeProbabilityTerminal('6'));
-    ns0.putNode(*new ChangeProbabilityAgeTerminal('7'));
+    ns0.putNode(*new AgeTerminal(1));
+    ns0.putNode(*new ChangesTerminal(2));
+    ns0.putNode(*new VisitsTerminal(3));
+    ns0.putNode(*new OneTerminal(4));
+    ns0.putNode(*new ChangeRateTerminal(5));
+    ns0.putNode(*new ChangeProbabilityTerminal(6));
+//    ns0.putNode(*new ChangeProbabilityAgeTerminal(7));
+
+    ns0.putNode(*new NADChangeRateTerminal(8));
+    ns0.putNode(*new SADChangeRateTerminal(9));
+    ns0.putNode(*new AADChangeRateTerminal(10));
+    ns0.putNode(*new GADChangeRateTerminal(11));
 }
 
+
+void Evaluate(std::vector<Scorer*>& scorers, Dataset* dataset,
+              int resources, int warm_up) {
+
+    CrawlSimulation* simulators[scorers.size()];
+    for (int i = 0; i < scorers.size(); ++i) {
+        simulators[i] = new CrawlSimulation(dataset);
+    }
+    for (int i = 0; i < scorers.size(); ++i) {
+        simulators[i]->Run(scorers[i], resources, warm_up);
+    }
+
+    for (int j = 0; j < scorers.size(); ++j) {
+        cout << scorers[j]->Name() << "; ";
+    }
+    cout << endl;
+    for(int i = 0; i < dataset->NumCycles()-warm_up; ++i) {
+        for (int j = 0; j < scorers.size(); ++j) {
+            cout << simulators[j]->ErrorRates()[i] << "; ";
+        }
+        cout << endl;
+    }
+
+    for (int j = 0; j < scorers.size(); ++j) {
+        cout << scorers[j]->Name() << "; ";
+    }
+    cout << endl;
+    for (int j = 0; j < scorers.size(); ++j) {
+        cout << simulators[j]->AverageErrorRate() << "; ";
+    }
+    cout << endl;
+
+    for (int i = 0; i < scorers.size(); ++i) {
+        delete simulators[i];
+    }
+}
 
 void newHandler () {
     cerr << "\nFatal error: Out of memory." << endl;
@@ -231,7 +271,9 @@ void newHandler () {
 }
 
 
+
 int main(int argc, char** argv) {
+
     if(argc != 2) {
         cerr << "Usage: "<< argv[0] << " <dataset_file>" << endl;
         exit(1);
@@ -244,10 +286,11 @@ int main(int argc, char** argv) {
 
 
     // Set up the dataset and crawling resources
-    dataset.Init(filename);
+    data_file.Init(filename);
+    data_file.dataset().Randomize();
 
-    test_set = dataset.dataset_.testCV(3, 0);
-    train_set = dataset.dataset_.trainCV(3, 0);
+    test_set = data_file.dataset().testCV(2, 0);
+    train_set = data_file.dataset().trainCV(2, 0);
 
     double resources_percent = 0.05;
     resources = test_set.NumInstances()*resources_percent;
@@ -261,13 +304,13 @@ int main(int argc, char** argv) {
     cout << "========= GPC++ Config ==========" << endl;
 
     // Init GP system.
-    GPInit (0, -1);
+    GPInit(0, -1);
 
     // Declare the GP Variables, set defaults and read configuration
     // file.  The defaults will be overwritten by the configuration file
     // when read.  If it doesn't exist, the defaults will be written to
     // the file.
-    GPConfiguration config (cout, "crawling.ini", configArray);
+    GPConfiguration config(cout, "crawling.ini", configArray);
 
     // Open the main output file for data and statistics file. First set
     // up names for data file. We use also a TeX-file where the
@@ -330,9 +373,9 @@ int main(int argc, char** argv) {
         // Print the best of generation to the LaTeX-file.
         printTexStyle=1;
         tout << "Generation " << gen << ", fitness "
-             << pop->NthGP (pop->bestOfPopulation)->getFitness()
+             << pop->NthGP(pop->bestOfPopulation)->getFitness()
              << endl;
-        tout << *pop->NthGP (pop->bestOfPopulation);
+        tout << *pop->NthGP(pop->bestOfPopulation);
         printTexStyle=0;
 
         // Create a report of this generation and how well it is doing
@@ -350,57 +393,25 @@ int main(int argc, char** argv) {
          << InfoFileName << ".tex,"
          << InfoFileName << ".stc." << endl;
 
+    cout << "============== Best Individual ===============" << endl;
     cout << endl << *pop->NthGP(pop->bestOfPopulation) << endl;
 
-    cout << "============== Starting Test ===============" << endl;
+    cout << "============ Baselines Comparison ============" << endl;
+    std::vector<Scorer*> scorers;
+    scorers.push_back(new RandomScorer());
+    scorers.push_back(new AgeScorer());
+    scorers.push_back(new ChangeRateScorer());
+    scorers.push_back(new ChangeProbScorer());
+    scorers.push_back(new NADChangeRateScorer());
+    scorers.push_back(new SADChangeRateScorer());
+    scorers.push_back(new AADChangeRateScorer());
+    scorers.push_back(new GADChangeRateScorer());
+    scorers.push_back(new GPScorer((MyGP*)pop->NthGP(pop->bestOfPopulation)));
 
-    RandomScorer s_random;
-    AgeScorer s_age;
-    ChangeRateScorer s_change_rate;
-    ChangeProbScorer s_change_prob;
-    ChangeProbAgeScorer s_change_prob_age;
-    GPScorer s_gp((MyGP*)pop->NthGP(pop->bestOfPopulation));
+    Evaluate(scorers, &test_set, resources, warm_up);
 
-    CrawlSimulation simulator(&test_set);
-
-    cout << "============ Average Error Rate =============" << endl;
-
-    simulator.Run(&s_random, resources, warm_up);
-    std::vector<double> error_random = simulator.ErrorRates();
-    cout << "random:          " << simulator.AverageErrorRate() << endl;
-
-    simulator.Run(&s_age, resources, warm_up);
-    std::vector<double> error_age = simulator.ErrorRates();
-    cout << "age:             " << simulator.AverageErrorRate() << endl;
-
-    simulator.Run(&s_change_rate, resources, warm_up);
-    std::vector<double> error_change_rate = simulator.ErrorRates();
-    cout << "change_rate:     " << simulator.AverageErrorRate() << endl;
-
-    simulator.Run(&s_change_prob, resources, warm_up);
-    std::vector<double> error_change_prob = simulator.ErrorRates();
-    cout << "change_prob:     " << simulator.AverageErrorRate() << endl;
-
-    simulator.Run(&s_change_prob_age, resources, warm_up);
-    std::vector<double> error_change_prob_age = simulator.ErrorRates();
-    cout << "change_prob_age: " << simulator.AverageErrorRate() << endl;
-
-    simulator.Run(&s_gp, resources, warm_up);
-    std::vector<double> error_gp = simulator.ErrorRates();
-    cout << "best_gp:         " << simulator.AverageErrorRate() << endl;
-
-    cout << "============= Error Rate per Cycle =============" << endl;
-
-    cout << "random; age; change_rate; change_prob; change_prob_age; best_gp;" << endl;
-
-    for(int i=0; i < test_set.NumCycles()-warm_up; ++i) {
-        cout << error_random[i] << "; ";
-        cout << error_age[i] << "; ";
-        cout << error_change_rate[i] << "; ";
-        cout << error_change_prob[i] << "; ";
-        cout << error_change_prob_age[i] << "; ";
-        cout << error_gp[i] << "; ";
-        cout << endl;
+    for (int i = 0; i < scorers.size(); ++i) {
+        delete scorers[i];
     }
 
     return 0;

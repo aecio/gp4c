@@ -1,52 +1,12 @@
 #ifndef DATASET_H
 #define DATASET_H
 
+#include <algorithm>
 #include <cmath>
 #include <cassert>
 #include <iostream>
 #include <fstream>
 #include <vector>
-
-class URL {
-public:
-    URL(): id(0), last_visit(0), visits(0), changes(0), score(0) { }
-    int id;
-    int last_visit;
-    int visits;
-    int changes;
-    double score;
-
-    bool operator<(const URL &other) const {
-        if (this->score > other.score)
-            return true;
-        else
-            return false;
-    }
-
-    static bool ComparePtr(URL* a, URL* b) {
-        if (a->score > b->score)
-            return true;
-        else
-            return false;
-    }
-
-    double GetAge(int cycle) {
-        return cycle-last_visit;
-    }
-
-    double GetChangeRate() {
-        return -log((visits - changes+0.5)/(visits+0.5));
-    }
-
-    double GetChangeProbability() {
-        return 1.0 - exp( - GetChangeRate());
-    }
-
-    double GetChangeProbabilityAge(int cycle) {
-        return 1.0 - exp( - GetChangeRate() * GetAge(cycle));
-    }
-};
-
 
 class Dataset {
 public:
@@ -85,6 +45,10 @@ public:
 
     void Add(const Instance* instance) {
         instances_.push_back(instance);
+    }
+
+    void Randomize() {
+        std::random_shuffle(instances_.begin(), instances_.end());
     }
 
     Dataset testCV(int num_folds, int current_fold) {
@@ -171,18 +135,18 @@ public:
 
         std::string changes;
         int host_id, page_id;
-        file >> host_id >> page_id >> changes;
-
+//        file >> host_id >> page_id >> changes;
+        file >> changes;
         std::vector<std::string> temp_data;
         while (file.good()) {
             assert(changes.size() > 0);
 
             // Max values
-            if(temp_data.size() >= 10000) break;       // max instances
-            if(changes.size() > 40) changes.resize(40);   // max cycles
+//            if(temp_data.size() >= 50000) break;       // max instances
+//            if(changes.size() > 60) changes.resize(40);   // max cycles
 
             temp_data.push_back(changes);
-            file >> host_id >> page_id >> changes;
+            file >> changes;
         }
         file.close();
 
@@ -193,8 +157,12 @@ public:
         }
     }
 
-    Dataset dataset_;
+    Dataset& dataset() {
+        return dataset_;
+    }
+
 private:
+    Dataset dataset_;
     Dataset::Instance* data_;
 };
 
