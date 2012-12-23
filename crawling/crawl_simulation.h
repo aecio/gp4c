@@ -10,9 +10,8 @@
 
 class CrawlSimulation {
 public:
-    CrawlSimulation(Dataset* dataset_): dataset(dataset_) { }
 
-    void Run(Scorer* scorer, int k, int warm_up);
+    void Run(Scorer* scorer, Dataset* dataset, int k, int warm_up);
     double AverageErrorRate();
 
     const std::vector<double>& ErrorRates() {
@@ -21,10 +20,10 @@ public:
 
 private:
     std::vector<double> error_rate;
-    Dataset* dataset;
 };
 
-inline void CrawlSimulation::Run(Scorer* scorer, int k, int warm_up) {
+inline void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
+                                 int k, int warm_up) {
 
     error_rate.clear();
     error_rate.reserve(k);

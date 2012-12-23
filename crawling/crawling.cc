@@ -18,6 +18,7 @@
 #include "scorer.h"
 #include "terminals.h"
 #include "url.h"
+#include "evaluation.h"
 
 typedef std::ostringstream ostrstream;
 
@@ -31,7 +32,7 @@ int resources; // Resources in functions of URL that can be crawled
 int warm_up; // Nuber of initial revisits to get basic statistics of change
 
 // The TeX-file
-ofstream tout;
+ofstream texout;
 int printTexStyle=0;
 
 // Define configuration parameters and the neccessary array to
@@ -152,7 +153,7 @@ void MyGP::printOn(ostream& os) {
     // If we use LaTeX-style, we provide here for the right equation
     // overhead used for LaTeX.
     if (printTexStyle) {
-        tout << "\\begin{eqnarray}" << endl;
+        texout << "\\begin{eqnarray}" << endl;
 
         // Print all ADF's, if any
         GPGene* current;
@@ -167,7 +168,7 @@ void MyGP::printOn(ostream& os) {
                 os << " NONE";
             os << "\\nonumber ";
         }
-        tout << endl << "\\end{eqnarray}" << endl << endl;
+        texout << endl << "\\end{eqnarray}" << endl << endl;
 
     }
     else
@@ -183,9 +184,8 @@ void MyGP::evaluate() {
 
     GPScorer scorer(this);
 
-    CrawlSimulation simulator(&train_set);
-    simulator.Run(&scorer, resources, warm_up);
-
+    CrawlSimulation simulator;
+    simulator.Run(&scorer, &train_set, resources, warm_up);
     double avg_error_rate = simulator.AverageErrorRate();
 
     // add a slight penalization for long functions
@@ -229,47 +229,10 @@ void createNodeSet (GPAdfNodeSet& adfNs) {
 }
 
 
-void Evaluate(std::vector<Scorer*>& scorers, Dataset* dataset,
-              int resources, int warm_up) {
-
-    CrawlSimulation* simulators[scorers.size()];
-    for (int i = 0; i < scorers.size(); ++i) {
-        simulators[i] = new CrawlSimulation(dataset);
-    }
-    for (int i = 0; i < scorers.size(); ++i) {
-        simulators[i]->Run(scorers[i], resources, warm_up);
-    }
-
-    for (int j = 0; j < scorers.size(); ++j) {
-        cout << scorers[j]->Name() << "; ";
-    }
-    cout << endl;
-    for(int i = 0; i < dataset->NumCycles()-warm_up; ++i) {
-        for (int j = 0; j < scorers.size(); ++j) {
-            cout << simulators[j]->ErrorRates()[i] << "; ";
-        }
-        cout << endl;
-    }
-
-    for (int j = 0; j < scorers.size(); ++j) {
-        cout << scorers[j]->Name() << "; ";
-    }
-    cout << endl;
-    for (int j = 0; j < scorers.size(); ++j) {
-        cout << simulators[j]->AverageErrorRate() << "; ";
-    }
-    cout << endl;
-
-    for (int i = 0; i < scorers.size(); ++i) {
-        delete simulators[i];
-    }
-}
-
 void newHandler () {
     cerr << "\nFatal error: Out of memory." << endl;
     exit (1);
 }
-
 
 
 int main(int argc, char** argv) {
@@ -278,27 +241,16 @@ int main(int argc, char** argv) {
         cerr << "Usage: "<< argv[0] << " <dataset_file>" << endl;
         exit(1);
     }
-    std::string filename = argv[1];
-
     // We set up a new-handler, because we might need a lot of memory,
     // and we don't know it's there.
     set_new_handler (newHandler);
 
 
+    std::string dataset_filename = argv[1];
+
     // Set up the dataset and crawling resources
-    data_file.Init(filename);
+    data_file.Init(dataset_filename);
     data_file.dataset().Randomize();
-
-    test_set = data_file.dataset().testCV(2, 0);
-    train_set = data_file.dataset().trainCV(2, 0);
-
-    double resources_percent = 0.05;
-    resources = test_set.NumInstances()*resources_percent;
-    warm_up = 3;
-
-    cout << "Crawling resources used: " << resources
-         << " ("<<resources_percent*100<<"%)" << endl;
-    cout << "Warm-up initial visits: "  << warm_up << endl;
 
 
     cout << "========= GPC++ Config ==========" << endl;
@@ -323,96 +275,120 @@ int main(int argc, char** argv) {
     strTeXFile  << InfoFileName << ".tex" << ends;
     ofstream fout (strOutFile.str().c_str());
     ofstream bout (strStatFile.str().c_str());
-    tout.open (strTeXFile.str().c_str(), ios::out);
-    tout << endl
+    texout.open (strTeXFile.str().c_str(), ios::out);
+    texout << endl
          << "\\documentstyle[a4]{article}" << endl
          << "\\begin{document}" << endl;
 
     // Print the configuration to the files just opened
     fout << cfg << endl;
     cout << cfg << endl;
-    tout << "\\begin{verbatim}\n" << cfg << "\\end{verbatim}\n" << endl;
+    texout << "\\begin{verbatim}\n" << cfg << "\\end{verbatim}\n" << endl;
 
     // Create the adf function/terminal set and print it out.
     GPAdfNodeSet adfNs;
-    createNodeSet (adfNs);
+    createNodeSet(adfNs);
     cout << adfNs << endl;
     fout << adfNs << endl;
 
-    // Create a population with this configuration
-    cout << "Creating initial population ..." << endl;
-    MyPopulation* pop=new MyPopulation (cfg, adfNs);
-    pop->create ();
-    cout << "Ok." << endl;
-    pop->createGenerationReport (1, 0, fout, bout);
+    EvaluationReport evaluation;
 
-    // Print the best of generation to the LaTeX-file.
-    printTexStyle=1;
-    tout << *pop->NthGP (pop->bestOfPopulation);
-    printTexStyle=0;
+    const int num_folds = 5;
+    for (int fold = 0; fold < num_folds; ++fold) {
 
-    // This next for statement is the actual genetic programming system
-    // which is in essence just repeated reproduction and crossover loop
-    // through all the generations .....
-    MyPopulation* newPop=NULL;
-    for (int gen=1; gen<=cfg.NumberOfGenerations; gen++) {
+        cout << "Running fold " << fold << " out of " << num_folds << endl;
+        fout << "Fold "<< fold << " of " << num_folds << endl << endl;
+        texout << "\\section{Fold "<<fold<<" of "<<num_folds<<"}\n" << endl;
 
-        // Create a new generation from the old one by applying the
-        // genetic operators
-        if (!cfg.SteadyState) {
-            newPop=new MyPopulation (cfg, adfNs);
-        }
-        pop->generate (*newPop);
+        ostrstream fold_file;
+        fold_file  << InfoFileName << ".fold" << fold << ends;
+        ofstream fold_result_out(fold_file.str().c_str());
 
-        // Delete the old generation and make the new the old one
-        if (!cfg.SteadyState) {
-            delete pop;
-            pop=newPop;
-        }
+        test_set = data_file.dataset().testCV(num_folds, fold);
+        train_set = data_file.dataset().trainCV(num_folds, fold);
+
+        double resources_percent = 0.05;
+        resources = train_set.NumInstances()*resources_percent;
+        warm_up = 3;
+
+        cout << "Crawling resources used in training: " << resources
+             << " ("<<resources_percent*100<<"%)" << endl;
+        cout << "Warm-up initial visits: "  << warm_up << endl;
+
+
+        // Create a population with this configuration
+        cout << "Creating initial population ..." << endl;
+        MyPopulation* pop = new MyPopulation(cfg, adfNs);
+        pop->create();
+        cout << "Ok." << endl;
+        pop->createGenerationReport(1, 0, fout, bout);
 
         // Print the best of generation to the LaTeX-file.
         printTexStyle=1;
-        tout << "Generation " << gen << ", fitness "
-             << pop->NthGP(pop->bestOfPopulation)->getFitness()
-             << endl;
-        tout << *pop->NthGP(pop->bestOfPopulation);
+        texout << *pop->NthGP(pop->bestOfPopulation);
         printTexStyle=0;
 
-        // Create a report of this generation and how well it is doing
-        pop->createGenerationReport (0, gen, fout, bout);
+        // This next for statement is the actual genetic programming system
+        // which is in essence just repeated reproduction and crossover loop
+        // through all the generations .....
+        MyPopulation* newPop = NULL;
+        for (int gen=1; gen <= cfg.NumberOfGenerations; gen++) {
+
+            // Create a new generation from the old one by applying the
+            // genetic operators
+            if (!cfg.SteadyState) {
+                newPop=new MyPopulation (cfg, adfNs);
+            }
+            pop->generate (*newPop);
+
+            // Delete the old generation and make the new the old one
+            if (!cfg.SteadyState) {
+                delete pop;
+                pop=newPop;
+            }
+
+            // Print the best of generation to the LaTeX-file.
+            printTexStyle=1;
+            texout << "Generation " << gen << ", fitness "
+                 << pop->NthGP(pop->bestOfPopulation)->getFitness()
+                 << endl;
+            texout << *pop->NthGP(pop->bestOfPopulation);
+            printTexStyle=0;
+
+            // Create a report of this generation and how well it is doing
+            pop->createGenerationReport (0, gen, fout, bout);
+        }
+
+        cout << "============== Best Individual ===============" << endl;
+        cout << endl << *pop->NthGP(pop->bestOfPopulation) << endl;
+
+        cout << "============ Baselines Comparison ============" << endl;
+        resources = test_set.NumInstances()*resources_percent;
+        cout << "Crawling resources used in training: " << resources
+             << " ("<<resources_percent*100<<"%)" << endl;
+        cout << "Warm-up initial visits: "  << warm_up << endl;
+        cout << "=============================================" << endl;
+
+        Scorer* gp = new GPScorer((MyGP*)pop->NthGP(pop->bestOfPopulation));
+        evaluation.Evaluate(gp, &test_set, resources, warm_up, fold_result_out);
+        delete gp;
+
+        fold_result_out.close();
     }
 
     // TeX-file: end of document
-    tout << endl
-         << "\\end{document}"
-         << endl;
-    tout.close ();
+    texout << endl << "\\end{document}"<< endl;
+    texout.close ();
 
     cout << "\nResults are in "
          << InfoFileName << ".dat,"
          << InfoFileName << ".tex,"
          << InfoFileName << ".stc." << endl;
 
-    cout << "============== Best Individual ===============" << endl;
-    cout << endl << *pop->NthGP(pop->bestOfPopulation) << endl;
-
-    cout << "============ Baselines Comparison ============" << endl;
-    std::vector<Scorer*> scorers;
-    scorers.push_back(new RandomScorer());
-    scorers.push_back(new AgeScorer());
-    scorers.push_back(new ChangeRateScorer());
-    scorers.push_back(new ChangeProbScorer());
-    scorers.push_back(new NADChangeRateScorer());
-    scorers.push_back(new SADChangeRateScorer());
-    scorers.push_back(new AADChangeRateScorer());
-    scorers.push_back(new GADChangeRateScorer());
-    scorers.push_back(new GPScorer((MyGP*)pop->NthGP(pop->bestOfPopulation)));
-
-    Evaluate(scorers, &test_set, resources, warm_up);
-
-    for (int i = 0; i < scorers.size(); ++i) {
-        delete scorers[i];
-    }
+    ostrstream fold_mean_file;
+    fold_mean_file  << InfoFileName << ".fold.mean" << ends;
+    ofstream fold_result_out(fold_mean_file.str().c_str());
+    evaluation.Sumarize(fold_result_out);
 
     return 0;
 }
