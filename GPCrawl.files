@@ -1,10 +1,3 @@
-ant/ant.cc
-ant/ant.h
-ant/ant.ini
-ant/Makefile
-ant/santafe.trl
-ant/trail.cc
-ant/trail.h
 crawling/datasets/synthetic.all.norm.gz
 crawling/crawl_simulation.cc
 crawling/crawl_simulation.h
@@ -120,3 +113,4 @@ Makefile
 Makefile.ini
 README
 ToDo
+crawling/evaluation.h
