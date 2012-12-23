@@ -41,7 +41,9 @@ public:
     static const Sum kSum;
 
 
-    URL(): id(0), last_visit_(0), visits_(0), changes_(0), score(0) { }
+    URL(): id(0), last_visit_(0), visits_(0), changes_(0), score(0) {
+        history.reserve(kDefaultWindowSize);
+    }
     int id;
     double score;
 
@@ -180,7 +182,7 @@ private:
     int last_visit_;
     int visits_;
     int changes_;
-    std::deque<int> history;
+    std::vector<int> history;
 };
 
 const URL::Sum URL::kSum;
