@@ -4,7 +4,6 @@
 #include <cmath>
 #include <iostream>
 #include <vector>
-#include <deque>
 
 #define MAX_SUM 300
 
@@ -41,7 +40,14 @@ public:
     static const Sum kSum;
 
 
-    URL(): id(0), last_visit_(0), visits_(0), changes_(0), score(0) {
+    URL() : id(0),
+            last_visit_(0),
+            visits_(0),
+            changes_(0),
+            score(0),
+            nad_cached_cycle_(-1),
+            aad_cached_cycle_(-1),
+            gad_cached_cycle_(-1) {
         history.reserve(kDefaultWindowSize);
     }
     int id;
@@ -94,6 +100,7 @@ public:
 
     // Non adaptive change rate (NAD)
     double GetNADChangeRate(int cycle) {
+        if(nad_cached_cycle_ == cycle) return nad_cached_value_;
 
         int window_size = (cycle > kDefaultWindowSize)? kDefaultWindowSize : cycle;
         int window_start = cycle - window_size;
@@ -111,6 +118,10 @@ public:
 //                     << " weight:" << weight << endl;
             }
         }
+
+        nad_cached_cycle_ = cycle;
+        nad_cached_value_ = nad;
+
         return nad;
     }
 
@@ -124,6 +135,7 @@ public:
 
     // Arithmetically adaptive change rate (AAD)
     double GetAADChangeRate(int cycle) {
+        if(aad_cached_cycle_ == cycle) return aad_cached_value_;
 
         int window_size = (cycle > kDefaultWindowSize)? kDefaultWindowSize : cycle;
         int window_start = cycle - window_size;
@@ -142,11 +154,16 @@ public:
 //                     << endl;
             }
         }
+
+        aad_cached_cycle_ = cycle;
+        aad_cached_value_ = aad;
+
         return aad;
     }
 
     // Geometrically adaptive change rate (GAD)
     double GetGADChangeRate(int cycle) {
+        if(gad_cached_cycle_ == cycle) return gad_cached_value_;
 
         int window_size = (cycle > kDefaultWindowSize)? kDefaultWindowSize : cycle;
         int window_start = cycle - window_size;
@@ -163,6 +180,10 @@ public:
 //                     << " weight:" << weight << endl;
             }
         }
+
+        gad_cached_cycle_ = cycle;
+        gad_cached_value_ = gad;
+
         return gad;
     }
 
@@ -183,6 +204,15 @@ private:
     int visits_;
     int changes_;
     std::vector<int> history;
+
+    int nad_cached_cycle_;
+    double nad_cached_value_;
+
+    int aad_cached_cycle_;
+    double aad_cached_value_;
+
+    int gad_cached_cycle_;
+    double gad_cached_value_;
 };
 
 const URL::Sum URL::kSum;

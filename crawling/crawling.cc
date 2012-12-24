@@ -339,7 +339,7 @@ int main(int argc, char** argv) {
             if (!cfg.SteadyState) {
                 newPop=new MyPopulation (cfg, adfNs);
             }
-            pop->generate (*newPop);
+            pop->generate(*newPop);
 
             // Delete the old generation and make the new the old one
             if (!cfg.SteadyState) {
@@ -350,8 +350,7 @@ int main(int argc, char** argv) {
             // Print the best of generation to the LaTeX-file.
             printTexStyle=1;
             texout << "Generation " << gen << ", fitness "
-                 << pop->NthGP(pop->bestOfPopulation)->getFitness()
-                 << endl;
+                 << pop->NthGP(pop->bestOfPopulation)->getFitness() << endl;
             texout << *pop->NthGP(pop->bestOfPopulation);
             printTexStyle=0;
 
