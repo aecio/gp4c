@@ -22,14 +22,6 @@
 
 typedef std::ostringstream ostrstream;
 
-// Defines the dataset
-int partition_scheme;
-WebArchiveDataset data_file;
-Dataset train_set;
-Dataset test_set;
-
-int resources; // Resources in functions of URL that can be crawled
-int warm_up; // Nuber of initial revisits to get basic statistics of change
 
 // The TeX-file
 ofstream texout;
@@ -66,7 +58,7 @@ struct GPConfigVarInformation configArray[]=
 // Print out a gene in typical math style. Don't be confused, I don't
 // make a difference whether this gene is the main program or an ADF,
 // I assume the internal structure is correct.
-void MyGene::printMathStyle (ostream& os, int lastPrecedence) {
+void MyGene::printMathStyle(ostream& os, int lastPrecedence) {
 
     // Function or terminal?
     if (isFunction()) {
@@ -128,9 +120,9 @@ void MyGene::printTeXStyle(ostream& os, int lastPrecedence) {
 // Print a Gene.
 void MyGene::printOn(ostream& os) {
     if (printTexStyle)
-        printTeXStyle (os);
+        printTeXStyle(os);
     else
-        printMathStyle (os);
+        printMathStyle(os);
 }
 
 
@@ -181,51 +173,56 @@ void MyGP::printOn(ostream& os) {
 // Evaluate the fitness of a GP and save it into the GP class variable
 // stdFitness.
 void MyGP::evaluate() {
-
-    GPScorer scorer(this);
-
     CrawlSimulation simulator;
-    simulator.Run(&scorer, &train_set, resources, warm_up);
-    double avg_error_rate = simulator.AverageErrorRate();
-
-    // add a slight penalization for long functions
-    stdFitness = avg_error_rate /* + ( length()*0.0001 ) */;
+    GPScorer scorer(this);
+    simulator.Run(&scorer, train_set_, resources_, warm_up_);
+    stdFitness = simulator.AverageErrorRate();
 }
 
 
 // Create function and terminal set
-void createNodeSet (GPAdfNodeSet& adfNs) {
+void createNodeSet(GPAdfNodeSet& adfNs) {
+
+    // Define functions/terminals
+
+    std::vector<Function*> functions;
+
+    functions.push_back(new PlusFunction('+'));
+    functions.push_back(new MinusFunction('-'));
+    functions.push_back(new TimesFunction('*'));
+    functions.push_back(new DivisionFunction('%'));
+    functions.push_back(new LogFunction('l'));
+    functions.push_back(new ExpFunction('e'));
+    functions.push_back(new PowFunction('p'));
+
+    std::vector<Terminal*> terminals;
+
+    terminals.push_back(new AgeTerminal(1));
+    terminals.push_back(new ChangesTerminal(2));
+    terminals.push_back(new VisitsTerminal(3));
+    terminals.push_back(new OneTerminal(4));
+    terminals.push_back(new ChangeRateTerminal(5));
+    terminals.push_back(new ChangeProbabilityTerminal(6));
+
+    terminals.push_back(new NADChangeRateTerminal(8));
+    terminals.push_back(new SADChangeRateTerminal(9));
+    terminals.push_back(new AADChangeRateTerminal(10));
+    terminals.push_back(new GADChangeRateTerminal(11));
+
+
     // Reserve space for the node sets
     adfNs.reserveSpace(1);
 
     // Now define the function and terminal set for each ADF and place
     // function/terminal sets into overall ADF container
-    GPNodeSet& ns0 = *new GPNodeSet(17);
+    GPNodeSet& ns0 = *new GPNodeSet(functions.size()+terminals.size());
     adfNs.put(0, ns0);
-
-    // Define functions/terminals and place them into the appropriate
-    // sets. Terminals take two arguments, functions three (the third
-    // parameter is the number of arguments the function has)
-    ns0.putNode(*new PlusFunction('+'));
-    ns0.putNode(*new MinusFunction('-'));
-    ns0.putNode(*new TimesFunction('*'));
-    ns0.putNode(*new DivisionFunction('%'));
-    ns0.putNode(*new LogFunction('l'));
-    ns0.putNode(*new ExpFunction('e'));
-    ns0.putNode(*new PowFunction('p'));
-
-    ns0.putNode(*new AgeTerminal(1));
-    ns0.putNode(*new ChangesTerminal(2));
-    ns0.putNode(*new VisitsTerminal(3));
-    ns0.putNode(*new OneTerminal(4));
-    ns0.putNode(*new ChangeRateTerminal(5));
-    ns0.putNode(*new ChangeProbabilityTerminal(6));
-//    ns0.putNode(*new ChangeProbabilityAgeTerminal(7));
-
-    ns0.putNode(*new NADChangeRateTerminal(8));
-    ns0.putNode(*new SADChangeRateTerminal(9));
-    ns0.putNode(*new AADChangeRateTerminal(10));
-    ns0.putNode(*new GADChangeRateTerminal(11));
+    for (int i = 0; i < functions.size(); ++i) {
+        ns0.putNode(*functions[i]);
+    }
+    for (int i = 0; i < terminals.size(); ++i) {
+        ns0.putNode(*terminals[i]);
+    }
 }
 
 
@@ -241,19 +238,13 @@ int main(int argc, char** argv) {
         cerr << "Usage: "<< argv[0] << " <dataset_file>" << endl;
         exit(1);
     }
-    // We set up a new-handler, because we might need a lot of memory,
-    // and we don't know it's there.
-    set_new_handler (newHandler);
-
-
     std::string dataset_filename = argv[1];
 
-    // Set up the dataset and crawling resources
-    data_file.Init(dataset_filename);
-    data_file.dataset().Randomize();
+    // We set up a new-handler, because we might need a lot of memory,
+    // and we don't know it's there.
+    set_new_handler(newHandler);
 
-
-    cout << "========= GPC++ Config ==========" << endl;
+    cout << "================= GPC++ Config ==============" << endl;
 
     // Init GP system.
     GPInit(0, -1);
@@ -291,34 +282,40 @@ int main(int argc, char** argv) {
     cout << adfNs << endl;
     fout << adfNs << endl;
 
+    cout << "=============================================" << endl;
+
+    // Set up the dataset and crawling resources
+    WebArchiveDataset data_file;
+    data_file.Init(dataset_filename);
+    data_file.dataset().Randomize();
+
+    const int warm_up = 3; // Nuber of initial visits to get basic statistics of change
+    const double resources_percent = 0.05;
+    const int num_folds = 5;
     EvaluationReport evaluation;
 
-    const int num_folds = 5;
     for (int fold = 0; fold < num_folds; ++fold) {
 
+        cout << "=============================================" << endl;
         cout << "Running fold " << fold << " out of " << num_folds << endl;
         fout << "Fold "<< fold << " of " << num_folds << endl << endl;
         texout << "\\section{Fold "<<fold<<" of "<<num_folds<<"}\n" << endl;
 
-        ostrstream fold_file;
-        fold_file  << InfoFileName << ".fold" << fold << ends;
-        ofstream fold_result_out(fold_file.str().c_str());
 
-        test_set = data_file.dataset().testCV(num_folds, fold);
-        train_set = data_file.dataset().trainCV(num_folds, fold);
 
-        double resources_percent = 0.05;
-        resources = train_set.NumInstances()*resources_percent;
-        warm_up = 3;
+        Dataset test_set = data_file.dataset().testCV(num_folds, fold);
+        Dataset train_set = data_file.dataset().trainCV(num_folds, fold);
 
-        cout << "Crawling resources used in training: " << resources
+        int train_resources = train_set.NumInstances()*resources_percent;
+        cout << "Crawling resources used in training: " << train_resources
              << " ("<<resources_percent*100<<"%)" << endl;
         cout << "Warm-up initial visits: "  << warm_up << endl;
 
 
         // Create a population with this configuration
         cout << "Creating initial population ..." << endl;
-        MyPopulation* pop = new MyPopulation(cfg, adfNs);
+        MyPopulation* pop = new MyPopulation(cfg, adfNs, &train_set,
+                                             train_resources, warm_up);
         pop->create();
         cout << "Ok." << endl;
         pop->createGenerationReport(1, 0, fout, bout);
@@ -337,7 +334,8 @@ int main(int argc, char** argv) {
             // Create a new generation from the old one by applying the
             // genetic operators
             if (!cfg.SteadyState) {
-                newPop=new MyPopulation (cfg, adfNs);
+                newPop = new MyPopulation(cfg, adfNs, &train_set,
+                                          train_resources, warm_up);
             }
             pop->generate(*newPop);
 
@@ -358,22 +356,32 @@ int main(int argc, char** argv) {
             pop->createGenerationReport (0, gen, fout, bout);
         }
 
-        cout << "============== Best Individual ===============" << endl;
         cout << endl << *pop->NthGP(pop->bestOfPopulation) << endl;
 
-        cout << "============ Baselines Comparison ============" << endl;
-        resources = test_set.NumInstances()*resources_percent;
-        cout << "Crawling resources used in training: " << resources
+        cout << "================= Test Phase ================" << endl;
+        int test_resources = test_set.NumInstances()*resources_percent;
+        cout << "Crawling resources used in test: " << test_resources
              << " ("<<resources_percent*100<<"%)" << endl;
         cout << "Warm-up initial visits: "  << warm_up << endl;
-        cout << "=============================================" << endl;
 
+        ostrstream fold_file;
+        fold_file  << InfoFileName << ".fold" << fold << ends;
+        ofstream fold_result_out(fold_file.str().c_str());
+
+        cout << "Testing best individual and baselines..." << endl;
         Scorer* gp = new GPScorer((MyGP*)pop->NthGP(pop->bestOfPopulation));
-        evaluation.Evaluate(gp, &test_set, resources, warm_up, fold_result_out);
+        evaluation.Evaluate(gp, &test_set, test_resources, warm_up, fold_result_out);
         delete gp;
 
         fold_result_out.close();
+        cout << "Results written into file: " << fold_file.str() << endl;
+        cout << "---------------------------------------------" << endl << endl;
     }
+
+    ostrstream fold_mean_file;
+    fold_mean_file  << InfoFileName << ".fold.mean" << ends;
+    ofstream fold_result_out(fold_mean_file.str().c_str());
+    evaluation.Sumarize(fold_result_out);
 
     // TeX-file: end of document
     texout << endl << "\\end{document}"<< endl;
@@ -383,11 +391,6 @@ int main(int argc, char** argv) {
          << InfoFileName << ".dat,"
          << InfoFileName << ".tex,"
          << InfoFileName << ".stc." << endl;
-
-    ostrstream fold_mean_file;
-    fold_mean_file  << InfoFileName << ".fold.mean" << ends;
-    ofstream fold_result_out(fold_mean_file.str().c_str());
-    evaluation.Sumarize(fold_result_out);
 
     return 0;
 }

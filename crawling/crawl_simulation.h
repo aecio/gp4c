@@ -26,7 +26,7 @@ inline void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
                                  int k, int warm_up) {
 
     error_rate.clear();
-    error_rate.reserve(k);
+    error_rate.reserve(dataset->NumCycles());
 
     std::vector<URL*> repository(dataset->NumInstances());
     for (int i = 0; i < dataset->NumInstances(); ++i) {
