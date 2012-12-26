@@ -14,16 +14,19 @@ class Scorer {
 
 class GPScorer : public Scorer {
 public:
-    GPScorer(MyGP* gp): gp_(gp) { }
+    GPScorer(MyGP* gp): gp_(gp), name_("best_gp") { }
+    GPScorer(MyGP* gp, const char* name): gp_(gp), name_(name) { }
+
     inline double Score(URL& url, int cycle) {
         return gp_->NthMyGene(0)->evaluate(url, cycle);
     }
     const std::string Name() {
-        return "best_gp";
+        return name_;
     }
 
 private:
     MyGP* gp_;
+    std::string name_;
 };
 
 class RandomScorer : public Scorer {

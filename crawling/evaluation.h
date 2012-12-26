@@ -13,12 +13,12 @@ public:
     EvaluationReport() {
         scorers_.push_back(new RandomScorer());
         scorers_.push_back(new AgeScorer());
-        scorers_.push_back(new ChangeRateScorer());
-        scorers_.push_back(new ChangeProbScorer());
-        scorers_.push_back(new NADChangeRateScorer());
         scorers_.push_back(new SADChangeRateScorer());
+        scorers_.push_back(new NADChangeRateScorer());
         scorers_.push_back(new AADChangeRateScorer());
         scorers_.push_back(new GADChangeRateScorer());
+        scorers_.push_back(new ChangeProbScorer());
+        scorers_.push_back(new ChangeRateScorer());
     }
 
     ~EvaluationReport() {
@@ -27,14 +27,18 @@ public:
         }
     }
 
-    void Evaluate(Scorer* scorer, Dataset* dataset,
+    void Evaluate(std::vector<Scorer*>& gp_scorers, Dataset* dataset,
                   double resources, int warm_up, ostream& out) {
 
-        int current = results_.size();
-        results_.resize(current+1);
-        std::vector<CrawlSimulation>& simulators = results_[current];
+        int current_fold = results_.size();
+        results_.resize(current_fold+1);
 
-        scorers_.push_back(scorer);
+        std::vector<CrawlSimulation>& simulators = results_[current_fold];
+
+        // Add GP scorers of this fold
+        for (int i = 0; i < gp_scorers.size(); ++i) {
+            scorers_.push_back(gp_scorers[i]);
+        }
         simulators.resize(scorers_.size());
 
         // Run simulation
@@ -44,35 +48,41 @@ public:
 
         // Print results of each cycle
         for (int j = 0; j < scorers_.size(); ++j) {
-            out << scorers_[j]->Name() << "; ";
+            out << scorers_[j]->Name() << ";";
         }
         out << endl;
         for(int i = 0; i < dataset->NumCycles()-warm_up; ++i) {
             for (int j = 0; j < scorers_.size(); ++j) {
-                out << simulators[j].ErrorRates()[i] << "; ";
+                out << simulators[j].ErrorRates()[i] << ";";
             }
             out << endl;
         }
 
         // Print mean change ratio
         for (int j = 0; j < scorers_.size(); ++j) {
-            out << scorers_[j]->Name() << "; ";
+            out << scorers_[j]->Name() << ";";
         }
         out << endl;
         for (int j = 0; j < scorers_.size(); ++j) {
-            out << simulators[j].AverageErrorRate() << "; ";
+            out << simulators[j].AverageErrorRate() << ";";
         }
         out << endl;
 
-        scorers_.pop_back();
+        // Remove GP scorers of this fold
+        for (int i = 0; i < gp_scorers.size(); ++i) {
+            scorers_.pop_back();
+        }
     }
 
-    void Sumarize(std::ostream& out) {
+    void Sumarize(std::vector<std::string>& names, std::ostream& out) {
         // Print results of each cycle
         for (int j = 0; j < scorers_.size(); ++j) {
-            out << scorers_[j]->Name() << "; ";
+            out << scorers_[j]->Name() << ";";
         }
-        out << "best_gp;" << endl;
+        for (int i = 0; i < names.size(); ++i) {
+            out << names[i] << ";";
+        }
+        out << endl;
 
         std::vector< std::vector<double> > means;
         means.resize(scorers_.size());
@@ -88,30 +98,33 @@ public:
                 }
                 double mean = sum / results_.size();
 
-                out << mean << "; ";
+                out << mean << ";";
             }
             out << endl;
         }
 
         // Print results of each cycle
         for (int j = 0; j < scorers_.size(); ++j) {
-            out << scorers_[j]->Name() << "; ";
+            out << scorers_[j]->Name() << ";";
         }
-        out << "best_gp;" << endl;
+        for (int i = 0; i < names.size(); ++i) {
+            out << names[i] << ";";
+        }
+        out << endl;
 
 
-            int n_scorers = results_[0].size();
-            for (int scorer = 0; scorer < n_scorers; ++scorer) {
+        int n_scorers = results_[0].size();
+        for (int scorer = 0; scorer < n_scorers; ++scorer) {
 
-                double sum = 0.0;
-                for (int fold = 0; fold < results_.size(); ++fold) {
-                    sum += results_[fold][scorer].AverageErrorRate();
-                }
-                double mean = sum / results_.size();
-
-                out << mean << "; ";
+            double sum = 0.0;
+            for (int fold = 0; fold < results_.size(); ++fold) {
+                sum += results_[fold][scorer].AverageErrorRate();
             }
-            out << endl;
+            double mean = sum / results_.size();
+
+            out << mean << ";";
+        }
+        out << endl;
 
     }
 

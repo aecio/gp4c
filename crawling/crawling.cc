@@ -380,10 +380,14 @@ int main(int argc, char** argv) {
         ofstream fold_result_out(fold_filename.str().c_str());
 
         cout << "Testing best individual and baselines..." << endl;
-        Scorer* gp = new GPScorer(best_gp);
+        GPScorer gp_last((MyGP*)pop->NthGP(pop->bestOfPopulation), "gp_last");
+        GPScorer gp_val(best_gp,"gp_val");
 
-        evaluation.Evaluate(gp, &test_set, resources, warm_up, fold_result_out);
-        delete gp;
+        std::vector<Scorer*> scorers;
+        scorers.push_back(&gp_last);
+        scorers.push_back(&gp_val);
+
+        evaluation.Evaluate(scorers, &test_set, resources, warm_up, fold_result_out);
 
         fold_result_out.close();
         cout << "Results written into file: " << fold_filename.str() << endl;
@@ -392,7 +396,12 @@ int main(int argc, char** argv) {
     ostrstream fold_mean_filename;
     fold_mean_filename  << InfoFileName << ".fold.mean" << ends;
     ofstream fold_out(fold_mean_filename.str().c_str());
-    evaluation.Sumarize(fold_out);
+
+    std::vector<std::string> scorer_names;
+    scorer_names.push_back("gp_last");
+    scorer_names.push_back("gp_val");
+
+    evaluation.Sumarize(scorer_names, fold_out);
 
     // TeX-file: end of document
     texout << endl << "\\end{document}"<< endl;
