@@ -11,6 +11,7 @@
 #include "gp.h" 
 #include "gpconfig.h"
 
+#include "gp_selector.h"
 #include "crawling.h"
 #include "crawl_simulation.h"
 #include "dataset.h"
@@ -173,10 +174,7 @@ void MyGP::printOn(ostream& os) {
 // Evaluate the fitness of a GP and save it into the GP class variable
 // stdFitness.
 void MyGP::evaluate() {
-    CrawlSimulation simulator;
-    GPScorer scorer(this);
-    simulator.Run(&scorer, train_set_, resources_, warm_up_);
-    stdFitness = simulator.AverageErrorRate();
+    stdFitness = CrawlSimulation::Run(this, dataset_, resources_, warm_up_);
 }
 
 
@@ -228,7 +226,7 @@ void createNodeSet(GPAdfNodeSet& adfNs) {
 
 void newHandler () {
     cerr << "\nFatal error: Out of memory." << endl;
-    exit (1);
+    exit(1);
 }
 
 
@@ -287,12 +285,14 @@ int main(int argc, char** argv) {
     // Set up the dataset and crawling resources
     WebArchiveDataset data_file;
     data_file.Init(dataset_filename);
-    data_file.dataset().Randomize();
+//    data_file.dataset().Randomize();
 
     const int warm_up = 3; // Nuber of initial visits to get basic statistics of change
-    const double resources_percent = 0.05;
+    const double resources = 0.05;
     const int num_folds = 5;
+    const int max_top_gps = cfg.NumberOfGenerations * 3;
     EvaluationReport evaluation;
+
 
     for (int fold = 0; fold < num_folds; ++fold) {
 
@@ -302,20 +302,18 @@ int main(int argc, char** argv) {
         texout << "\\section{Fold "<<fold<<" of "<<num_folds<<"}\n" << endl;
 
 
-
         Dataset test_set = data_file.dataset().testCV(num_folds, fold);
         Dataset train_set = data_file.dataset().trainCV(num_folds, fold);
 
-        int train_resources = train_set.NumInstances()*resources_percent;
-        cout << "Crawling resources used in training: " << train_resources
-             << " ("<<resources_percent*100<<"%)" << endl;
-        cout << "Warm-up initial visits: "  << warm_up << endl;
+        Dataset evolution_set  = train_set.trainCV(2, 0);
+        Dataset validation_set = train_set.testCV(2, 0);
 
+        GPSelector selector(max_top_gps);
 
         // Create a population with this configuration
         cout << "Creating initial population ..." << endl;
-        MyPopulation* pop = new MyPopulation(cfg, adfNs, &train_set,
-                                             train_resources, warm_up);
+        MyPopulation* pop = new MyPopulation(cfg, adfNs, &evolution_set,
+                                             resources, warm_up);
         pop->create();
         cout << "Ok." << endl;
         pop->createGenerationReport(1, 0, fout, bout);
@@ -329,13 +327,14 @@ int main(int argc, char** argv) {
         // which is in essence just repeated reproduction and crossover loop
         // through all the generations .....
         MyPopulation* newPop = NULL;
+
         for (int gen=1; gen <= cfg.NumberOfGenerations; gen++) {
 
             // Create a new generation from the old one by applying the
             // genetic operators
             if (!cfg.SteadyState) {
-                newPop = new MyPopulation(cfg, adfNs, &train_set,
-                                          train_resources, warm_up);
+                newPop = new MyPopulation(cfg, adfNs, &evolution_set,
+                                          resources, warm_up);
             }
             pop->generate(*newPop);
 
@@ -345,10 +344,15 @@ int main(int argc, char** argv) {
                 pop=newPop;
             }
 
+            // Maintain the best GPs for the validation phase
+            for (int i = 0; i < pop->containerSize(); ++i) {
+                selector.Push((MyGP*) pop->NthGP(i));
+            }
+
             // Print the best of generation to the LaTeX-file.
             printTexStyle=1;
             texout << "Generation " << gen << ", fitness "
-                 << pop->NthGP(pop->bestOfPopulation)->getFitness() << endl;
+                   << pop->NthGP(pop->bestOfPopulation)->getFitness() << endl;
             texout << *pop->NthGP(pop->bestOfPopulation);
             printTexStyle=0;
 
@@ -356,32 +360,39 @@ int main(int argc, char** argv) {
             pop->createGenerationReport (0, gen, fout, bout);
         }
 
-        cout << endl << *pop->NthGP(pop->bestOfPopulation) << endl;
+        ostrstream bests_filename;
+        bests_filename  << InfoFileName << ".bests" << fold << ends;
+        ofstream bests_file(bests_filename.str().c_str());
+
+        MyGP* best_gp = selector.SelectGP(&validation_set, resources,
+                                          warm_up, bests_file);
+
+        cout << endl;
+        cout << "Best GP of the last generation:" << endl;
+        cout << *pop->NthGP(pop->bestOfPopulation) << endl;
+
+        cout << "Best GP using validation method:" << endl;
+        cout << *best_gp << endl;
 
         cout << "================= Test Phase ================" << endl;
-        int test_resources = test_set.NumInstances()*resources_percent;
-        cout << "Crawling resources used in test: " << test_resources
-             << " ("<<resources_percent*100<<"%)" << endl;
-        cout << "Warm-up initial visits: "  << warm_up << endl;
-
-        ostrstream fold_file;
-        fold_file  << InfoFileName << ".fold" << fold << ends;
-        ofstream fold_result_out(fold_file.str().c_str());
+        ostrstream fold_filename;
+        fold_filename  << InfoFileName << ".fold" << fold << ends;
+        ofstream fold_result_out(fold_filename.str().c_str());
 
         cout << "Testing best individual and baselines..." << endl;
-        Scorer* gp = new GPScorer((MyGP*)pop->NthGP(pop->bestOfPopulation));
-        evaluation.Evaluate(gp, &test_set, test_resources, warm_up, fold_result_out);
+        Scorer* gp = new GPScorer(best_gp);
+
+        evaluation.Evaluate(gp, &test_set, resources, warm_up, fold_result_out);
         delete gp;
 
         fold_result_out.close();
-        cout << "Results written into file: " << fold_file.str() << endl;
-        cout << "---------------------------------------------" << endl << endl;
+        cout << "Results written into file: " << fold_filename.str() << endl;
     }
 
-    ostrstream fold_mean_file;
-    fold_mean_file  << InfoFileName << ".fold.mean" << ends;
-    ofstream fold_result_out(fold_mean_file.str().c_str());
-    evaluation.Sumarize(fold_result_out);
+    ostrstream fold_mean_filename;
+    fold_mean_filename  << InfoFileName << ".fold.mean" << ends;
+    ofstream fold_out(fold_mean_filename.str().c_str());
+    evaluation.Sumarize(fold_out);
 
     // TeX-file: end of document
     texout << endl << "\\end{document}"<< endl;

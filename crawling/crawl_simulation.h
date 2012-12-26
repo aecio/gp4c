@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "crawling.h"
 #include "dataset.h"
 #include "scorer.h"
 #include "url.h"
@@ -11,11 +12,20 @@
 class CrawlSimulation {
 public:
 
-    void Run(Scorer* scorer, Dataset* dataset, int k, int warm_up);
     double AverageErrorRate();
 
     const std::vector<double>& ErrorRates() {
         return error_rate;
+    }
+
+    void Run(Scorer* scorer, Dataset* dataset, double resources, int warm_up);
+
+    inline static double Run(MyGP* gp, Dataset* dataset,
+                             double resources, int warm_up) {
+        CrawlSimulation simulator;
+        GPScorer scorer(gp);
+        simulator.Run(&scorer, dataset, resources, warm_up);
+        return simulator.AverageErrorRate() + gp->length()*0.00001 ;
     }
 
 private:
@@ -23,7 +33,9 @@ private:
 };
 
 inline void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
-                                 int k, int warm_up) {
+                                 double resources, int warm_up) {
+
+    int k = dataset->NumInstances()*resources;
 
     error_rate.clear();
     error_rate.reserve(dataset->NumCycles());

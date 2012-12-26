@@ -4,8 +4,7 @@
 #include <cstdlib>
 
 #include "url.h"
-
-class MyGP;
+#include "crawling.h"
 
 class Scorer {
   public:

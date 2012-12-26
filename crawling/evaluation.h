@@ -28,7 +28,7 @@ public:
     }
 
     void Evaluate(Scorer* scorer, Dataset* dataset,
-                  int resources, int warm_up, ostream& out) {
+                  double resources, int warm_up, ostream& out) {
 
         int current = results_.size();
         results_.resize(current+1);

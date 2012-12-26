@@ -6,10 +6,11 @@
 #include <string>
 #include <cassert>
 #include <cmath>
+#include <sstream>
 
-class MyGP;
-class URL;
-class Dataset;
+#include "gp.h"
+#include "dataset.h"
+#include "url.h"
 
 class MyGene : public GPGene {
 public:
@@ -40,15 +41,23 @@ public:
 
 class MyGP : public GP {
 public:
-    MyGP (int genes, Dataset* train_set, int resources, int warm_up):
+    class Comparator {
+    public:
+        bool operator() (const MyGP* lhs, const MyGP* rhs) const {
+            //TODO: consider length if fitness values are very close
+            return (lhs->stdFitness < rhs->stdFitness);
+        }
+    };
+
+    MyGP (int genes, Dataset* train_set, double resources, int warm_up):
         GP(genes),
-        train_set_(train_set),
+        dataset_(train_set),
         resources_(resources),
         warm_up_(warm_up) { }
 
     MyGP (MyGP& gpo) :
         GP(gpo),
-        train_set_(gpo.train_set_),
+        dataset_(gpo.dataset_),
         resources_(gpo.resources_),
         warm_up_(gpo.warm_up_) { }
 
@@ -66,18 +75,23 @@ public:
         return (MyGene*) GPContainer::Nth(n);
     }
 
+    void set_dataset(Dataset* dataset) {
+        dataset_ =  dataset;
+    }
+
     virtual void evaluate();
 
 private:
-    Dataset* train_set_;
-    int resources_, warm_up_;
+    Dataset* dataset_;
+    double resources_;
+    int warm_up_;
 };
 
 
 class MyPopulation : public GPPopulation {
 public:
     MyPopulation(GPVariables& GPVar_, GPAdfNodeSet& adfNs_,
-                 Dataset* train_set, int resources, int warm_up) :
+                 Dataset* train_set, double resources, int warm_up) :
         GPPopulation(GPVar_, adfNs_),
         train_set_(train_set),
         resources_(resources),
@@ -106,7 +120,8 @@ public:
 
 private:
     Dataset* train_set_;
-    int resources_, warm_up_;
+    double resources_;
+    int warm_up_;
 };
 
 
