@@ -7,6 +7,7 @@
 *.o
 *.a
 GPCpp.*
-*.creator.user
+*.creator.user*
 result.*
-crawling/datasets/synthetic.all.norm
+crawling/svmrank/
+crawling/datasets/
