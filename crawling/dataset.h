@@ -4,8 +4,9 @@
 #include <algorithm>
 #include <cmath>
 #include <cassert>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <string>
 #include <vector>
 
 class Dataset {
@@ -108,8 +109,8 @@ class WebArchiveDataset {
 public:
     enum {PARTITION_URL, PARTITION_CYCLE};
 
-    WebArchiveDataset() {}
-    WebArchiveDataset(const std::string& filename) {
+    WebArchiveDataset(): data_(NULL) { }
+    WebArchiveDataset(const std::string& filename): data_(NULL) {
         Init(filename);
     }
 
@@ -131,31 +132,41 @@ public:
 
     void ReadFile(const std::string& filename) {
 
-        std::ifstream file(filename.c_str());
+            std::ifstream file(filename.c_str());
 
-        std::string changes;
-        int host_id, page_id;
-//        file >> host_id >> page_id >> changes;
-        file >> changes;
-        std::vector<std::string> temp_data;
-        while (file.good()) {
-            assert(changes.size() > 0);
+            std::vector<std::string> tmp_data;
+            if(file.is_open()) {
+                std::string line;
+                while (getline(file, line)) {
+                    std::istringstream iss(line);
 
-            // Max values
-//            if(temp_data.size() >= 50000) break;       // max instances
-//            if(changes.size() > 60) changes.resize(40);   // max cycles
+    //                int host_id, page_id;
+    //                iss >> host_id;
+    //                iss >> page_id;
 
-            temp_data.push_back(changes);
-            file >> changes;
+                    std::string changes;
+                    iss >> changes;
+
+                    assert(changes.size() > 0);
+
+
+                    // Max values
+//                    if(tmp_data.size() >= 1000) break;       // max instances
+//                    changes.resize(20);                        // max cycles
+
+                    tmp_data.push_back(changes);
+                }
+                file.close();
+            }
+
+            if(tmp_data.size() > 0) {
+                data_ = new Dataset::Instance[tmp_data.size()];
+                for (int i = 0; i < tmp_data.size(); ++i) {
+                    data_[i] = Dataset::Instance(tmp_data[i]);
+                    dataset_.Add(&data_[i]);
+                }
+            }
         }
-        file.close();
-
-        data_ = new Dataset::Instance[temp_data.size()];
-        for (int i = 0; i < temp_data.size(); ++i) {
-            data_[i] = Dataset::Instance(temp_data[i]);
-            dataset_.Add(&data_[i]);
-        }
-    }
 
     Dataset& dataset() {
         return dataset_;
