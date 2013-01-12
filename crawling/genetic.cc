@@ -82,8 +82,8 @@ void MyGene::printOn(ostream& os) {
 double MyGene::evaluate(URL& url, int cycle) {
     if(isFunction()) {
         return static_cast<Function*>(node)->Value(this, url, cycle);
-    }
-    if(isTerminal()) {
+    } else {
+//    if(isTerminal())
         return static_cast<Terminal*>(node)->Value(url, cycle);
     }
 }
