@@ -82,7 +82,7 @@ void GPPrintCopyright (ostream& os)
 // rather should occur) only if the user gives us wrong parameter
 // values etc., but on some rare occasions an error indicates an
 // internal program error.
-void GPExitSystem (char *functionName, char *errorMessage)
+void GPExitSystem (const char *functionName, const char *errorMessage)
 {
   cerr << "\n\nThe GP Kernel reports an error:\n" 
        << "===> In Function \"" << functionName << "\"" << endl

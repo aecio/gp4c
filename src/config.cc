@@ -95,7 +95,7 @@ Thomas Weinbrenner 1996, 1997
 
 using namespace std;
 
-GPConfiguration::GPConfiguration (ostream &out, char *fname,
+GPConfiguration::GPConfiguration (ostream &out, const char *fname,
 				  struct GPConfigVarInformation cfg[])
   // Constructor: Read in configuration file.
 {

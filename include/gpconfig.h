@@ -52,7 +52,7 @@ using namespace std;
 enum GPDataType {DATAINT=1, DATAFLOAT, DATADOUBLE, DATASTRING};
 
 struct GPConfigVarInformation {
-  char *name;
+  const char *name;
   enum GPDataType typ;
   void *varPtr;
 };
@@ -60,8 +60,8 @@ struct GPConfigVarInformation {
 class GPConfiguration
 {
 public:
-  GPConfiguration (ostream &out, char *fname,
-		   struct GPConfigVarInformation cfg[]);
+  GPConfiguration (ostream &out, const char *fname,
+           struct GPConfigVarInformation cfg[]);
   ~GPConfiguration ();
 
   // Prototype to write the configuration variables to ostream 

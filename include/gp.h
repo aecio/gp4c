@@ -76,7 +76,7 @@ int GPRandomPercent (double percent);
 
 // Init and exit
 void GPInit (int printCopyright, long seedRandomGenerator);
-void GPExitSystem (char *functionName, char *errorMessage); 
+void GPExitSystem (const char *functionName, const char *errorMessage);
 
 // Registering for load/save
 class GPObject;
