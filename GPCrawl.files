@@ -116,3 +116,7 @@ ToDo
 crawling/evaluation.h
 crawling/url.h
 crawling/gp_selector.h
+crawling/url.cc
+crawling/dataset.cc
+crawling/genetic.cc
+crawling/genetic.h

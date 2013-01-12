@@ -12,7 +12,7 @@
 #include "gpconfig.h"
 
 #include "gp_selector.h"
-#include "crawling.h"
+#include "genetic.h"
 #include "crawl_simulation.h"
 #include "dataset.h"
 #include "functions.h"
@@ -21,12 +21,8 @@
 #include "url.h"
 #include "evaluation.h"
 
-typedef std::ostringstream ostrstream;
 
 
-// The TeX-file
-ofstream texout;
-int printTexStyle=0;
 
 // Define configuration parameters and the neccessary array to
 // read/write the configuration to a file. If you need more variables,
@@ -54,128 +50,6 @@ struct GPConfigVarInformation configArray[]=
 {"InfoFileName", DATASTRING, &InfoFileName},
 {"", DATAINT, NULL}
 };
-
-
-// Print out a gene in typical math style. Don't be confused, I don't
-// make a difference whether this gene is the main program or an ADF,
-// I assume the internal structure is correct.
-void MyGene::printMathStyle(ostream& os, int lastPrecedence) {
-
-    // Function or terminal?
-    if (isFunction()) {
-        // Determine operator priority
-        int precedence = static_cast<Function*>(node)->Precedence();
-
-        // Do we need brackets?
-        if (lastPrecedence > precedence) {
-            os << "(";
-        }
-        // Print out the operator and the parameters
-        static_cast<Function*>(node)->PrintMathStyle(this, os, precedence);
-
-        // Do we need brackets?
-        if (lastPrecedence > precedence) {
-            os << ")";
-        }
-    }
-
-    // Print the terminal
-    if (isTerminal()) {
-        static_cast<Terminal*>(node)->PrintMathStyle(os);
-    }
-}
-
-
-// Print out a gene in LaTeX-style. Don't be confused, I don't make a
-// difference whether this gene is the main program or an ADF, I
-// assume the internal structure is correct.
-void MyGene::printTeXStyle(ostream& os, int lastPrecedence) {
-
-    // Function or terminal?
-    if (isFunction()) {
-        // Determine operator priority
-        int precedence = static_cast<Function*>(node)->Precedence();
-
-        // Do we need brackets?
-        if(lastPrecedence > precedence) {
-            os << "\\left(";
-        }
-
-        // Print out the operator and the parameters
-        static_cast<Function*>(node)->PrintTexStyle(this, os, precedence);
-
-        // Do we need brackets?
-        if (lastPrecedence > precedence) {
-            os << "\\right)";
-        }
-    }
-
-    // We can't let the terminal print itself, because we want to modify
-    // it a little bit
-    if(isTerminal()) {
-        static_cast<Terminal*>(node)->PrintTexStyle(os);
-        //GPExitSystem ("MyGene::printTeXStyle", "Undefined terminal value");
-    }
-}
-
-// Print a Gene.
-void MyGene::printOn(ostream& os) {
-    if (printTexStyle)
-        printTeXStyle(os);
-    else
-        printMathStyle(os);
-}
-
-
-// We have the freedom to define this function in any way we like.
-double MyGene::evaluate(URL& url, int cycle) {
-    if(isFunction()) {
-        return static_cast<Function*>(node)->Value(this, url, cycle);
-    }
-    if(isTerminal()) {
-        return static_cast<Terminal*>(node)->Value(url, cycle);
-    }
-}
-
-
-
-// Print a GP. If we want a LaTeX-output, we must provide for the
-// equation environment, otherwise we simply call the print function
-// of our base class.
-void MyGP::printOn(ostream& os) {
-    // If we use LaTeX-style, we provide here for the right equation
-    // overhead used for LaTeX.
-    if (printTexStyle) {
-        texout << "\\begin{eqnarray}" << endl;
-
-        // Print all ADF's, if any
-        GPGene* current;
-        for (int n=0; n<containerSize(); n++)
-        {
-            if (n!=0)
-                os << "\\\\" << endl;
-            os << "f_" << n+1 << " & = & ";
-            if ((current=NthGene(n)))
-                os << *current;
-            else
-                os << " NONE";
-            os << "\\nonumber ";
-        }
-        texout << endl << "\\end{eqnarray}" << endl << endl;
-
-    }
-    else
-        // Just call the print function of our base class to do the
-        // standard job.
-        GP::printOn (os);
-}
-
-
-// Evaluate the fitness of a GP and save it into the GP class variable
-// stdFitness.
-void MyGP::evaluate() {
-    stdFitness = CrawlSimulation::Run(this, dataset_, resources_, warm_up_);
-}
 
 
 // Create function and terminal set
@@ -258,34 +132,36 @@ int main(int argc, char** argv) {
     // equations are written to in TeX-style. Very nice to look at!
     // Remember we should delete the string from the stream, well just a
     // few bytes
-    ostrstream strOutFile, strStatFile, strTeXFile;
+    ostringstream strOutFile, strStatFile, strTeXFile;
     strOutFile  << InfoFileName << ".dat" << ends;
     strStatFile << InfoFileName << ".stc" << ends;
     strTeXFile  << InfoFileName << ".tex" << ends;
-    ofstream fout (strOutFile.str().c_str());
-    ofstream bout (strStatFile.str().c_str());
-    texout.open (strTeXFile.str().c_str(), ios::out);
-    texout << endl
+    ofstream fout(strOutFile.str().c_str());
+    ofstream bout(strStatFile.str().c_str());
+    ofstream tout;
+
+    tout.open(strTeXFile.str().c_str(), ios::out);
+    tout << endl
          << "\\documentstyle[a4]{article}" << endl
          << "\\begin{document}" << endl;
 
     // Print the configuration to the files just opened
-    fout << cfg << endl;
     cout << cfg << endl;
-    texout << "\\begin{verbatim}\n" << cfg << "\\end{verbatim}\n" << endl;
+    fout << cfg << endl;
+    tout << "\\begin{verbatim}\n" << cfg << "\\end{verbatim}\n" << endl;
 
     // Create the adf function/terminal set and print it out.
     GPAdfNodeSet adfNs;
     createNodeSet(adfNs);
+
     cout << adfNs << endl;
     fout << adfNs << endl;
 
     cout << "=============================================" << endl;
 
     // Set up the dataset and crawling resources
-    WebArchiveDataset data_file;
+    DataArchive data_file;
     data_file.Init(dataset_filename);
-//    data_file.dataset().Randomize();
 
     const int warm_up = 3; // Nuber of initial visits to get basic statistics of change
     const double resources = 0.05;
@@ -299,7 +175,7 @@ int main(int argc, char** argv) {
         cout << "=============================================" << endl;
         cout << "Running fold " << fold << " out of " << num_folds << endl;
         fout << "Fold "<< fold << " of " << num_folds << endl << endl;
-        texout << "\\section{Fold "<<fold<<" of "<<num_folds<<"}\n" << endl;
+        tout << "\\section{Fold "<<fold<<" of "<<num_folds<<"}\n" << endl;
 
 
         Dataset test_set = data_file.dataset().testCV(num_folds, fold);
@@ -319,9 +195,7 @@ int main(int argc, char** argv) {
         pop->createGenerationReport(1, 0, fout, bout);
 
         // Print the best of generation to the LaTeX-file.
-        printTexStyle=1;
-        texout << *pop->NthGP(pop->bestOfPopulation);
-        printTexStyle=0;
+        ((MyGP*) pop->NthGP(pop->bestOfPopulation))->printTeXStyle(tout);
 
         // This next for statement is the actual genetic programming system
         // which is in essence just repeated reproduction and crossover loop
@@ -350,22 +224,20 @@ int main(int argc, char** argv) {
             }
 
             // Print the best of generation to the LaTeX-file.
-            printTexStyle=1;
-            texout << "Generation " << gen << ", fitness "
+            tout << "Generation " << gen << ", fitness "
                    << pop->NthGP(pop->bestOfPopulation)->getFitness() << endl;
-            texout << *pop->NthGP(pop->bestOfPopulation);
-            printTexStyle=0;
+            ((MyGP*) pop->NthGP(pop->bestOfPopulation))->printTeXStyle(tout);
+
 
             // Create a report of this generation and how well it is doing
             pop->createGenerationReport (0, gen, fout, bout);
         }
 
-        ostrstream bests_filename;
+        ostringstream bests_filename;
         bests_filename  << InfoFileName << ".bests" << fold << ends;
         ofstream bests_file(bests_filename.str().c_str());
 
-        MyGP* best_gp = selector.SelectGP(&validation_set, resources,
-                                          warm_up, bests_file);
+        MyGP* best_gp = selector.SelectGP(&validation_set, bests_file);
 
         cout << endl;
         cout << "Best GP of the last generation:" << endl;
@@ -375,7 +247,7 @@ int main(int argc, char** argv) {
         cout << *best_gp << endl;
 
         cout << "================= Test Phase ================" << endl;
-        ostrstream fold_filename;
+        ostringstream fold_filename;
         fold_filename  << InfoFileName << ".fold" << fold << ends;
         ofstream fold_result_out(fold_filename.str().c_str());
 
@@ -393,8 +265,8 @@ int main(int argc, char** argv) {
         cout << "Results written into file: " << fold_filename.str() << endl;
     }
 
-    ostrstream fold_mean_filename;
-    fold_mean_filename  << InfoFileName << ".fold.mean" << ends;
+    ostringstream fold_mean_filename;
+    fold_mean_filename  << InfoFileName << ".mean" << ends;
     ofstream fold_out(fold_mean_filename.str().c_str());
 
     std::vector<std::string> scorer_names;
@@ -404,8 +276,8 @@ int main(int argc, char** argv) {
     evaluation.Sumarize(scorer_names, fold_out);
 
     // TeX-file: end of document
-    texout << endl << "\\end{document}"<< endl;
-    texout.close ();
+    tout << endl << "\\end{document}"<< endl;
+    tout.close ();
 
     cout << "\nResults are in "
          << InfoFileName << ".dat,"

@@ -4,7 +4,6 @@
 #include <iostream>
 
 #include "gp.h"
-#include "crawling.h"
 
 class Terminal : public GPNode {
 public:

@@ -1,5 +1,7 @@
-/ant/ant
+/build
+/crawling/build
 /crawling/crawling
+/ant/ant
 /lawn/lawn
 /skeleton/skeleton
 /symbreg/sym
@@ -8,6 +10,7 @@
 *.a
 GPCpp.*
 *.creator.user*
+CMakeLists.txt.user*
 result.*
 crawling/svmrank/
 crawling/datasets/

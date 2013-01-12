@@ -4,7 +4,6 @@
 #include <cmath>
 
 #include "gp.h"
-#include "crawling.h"
 
 class Function : public GPNode {
 public:

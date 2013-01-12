@@ -1,16 +1,18 @@
-#ifndef CRAWLING_H
-#define CRAWLING_H
+#ifndef GENETIC_H
+#define GENETIC_H
 
 #include <vector>
 #include <iostream>
 #include <string>
 #include <cassert>
 #include <cmath>
-#include <sstream>
+
 
 #include "gp.h"
-#include "dataset.h"
 #include "url.h"
+#include "crawl_simulation.h"
+
+class Dataset;
 
 class MyGene : public GPGene {
 public:
@@ -51,15 +53,16 @@ public:
 
     MyGP (int genes, Dataset* train_set, double resources, int warm_up):
         GP(genes),
-        dataset_(train_set),
+        evolution_set_(train_set),
         resources_(resources),
         warm_up_(warm_up) { }
 
     MyGP (MyGP& gpo) :
         GP(gpo),
-        dataset_(gpo.dataset_),
+        evolution_set_(gpo.evolution_set_),
         resources_(gpo.resources_),
-        warm_up_(gpo.warm_up_) { }
+        warm_up_(gpo.warm_up_),
+        sim_evolution_(gpo.sim_evolution_){ }
 
     virtual GPObject& duplicate() {
         return *(new MyGP(*this));
@@ -69,22 +72,39 @@ public:
         return new MyGene (gpo);
     }
 
-    virtual void printOn(ostream& os);
+    void printTeXStyle(ostream& os);
+
+//    virtual void printOn(ostream& os);
 
     MyGene* NthMyGene (int n) {
         return (MyGene*) GPContainer::Nth(n);
     }
 
     void set_dataset(Dataset* dataset) {
-        dataset_ =  dataset;
+        evolution_set_ =  dataset;
     }
 
     virtual void evaluate();
 
+    double GetFitness(CrawlSimulation *simulator, Dataset* dataset);
+
+    void RunValidation();
+
+    void set_validation_set(Dataset* validation_set) {
+        validation_set_ = validation_set;
+    }
+
+    double fitness_e;
+    double fitness_v;
+    double cycles_std_dev;
+    double fitness_std_dev;
+
 private:
-    Dataset* dataset_;
+    Dataset* evolution_set_;
+    Dataset* validation_set_;
     double resources_;
     int warm_up_;
+    CrawlSimulation sim_evolution_;
 };
 
 
@@ -125,4 +145,4 @@ private:
 };
 
 
-#endif // CRAWLING_H
+#endif // GENETIC_H

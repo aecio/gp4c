@@ -5,7 +5,10 @@
 #include <set>
 #include <limits>
 
-#include "crawling.h"
+#include <unistd.h>
+#include "boost/threadpool.hpp"
+
+#include "genetic.h"
 #include "crawl_simulation.h"
 
 typedef std::priority_queue<MyGP*, vector<MyGP*>, MyGP::Comparator> MyGPQueue;
@@ -44,26 +47,44 @@ public:
         }
     }
 
-    MyGP* SelectGP(Dataset* validation_set, double resources, int warm_up,
-                   ostream& top_out) {
+    MyGP* SelectGP(Dataset* validation_set, ostream& top_out) {
 
         best_gp_ = NULL;
         double min_score = std::numeric_limits<double>::max();
 
+        std::vector<MyGP*> gps;
+        gps.reserve(top_gps_.size());
+
+        // start one thread per processor
+        boost::threadpool::pool tp(sysconf(_SC_NPROCESSORS_ONLN));
+
+        // loop through all GPs and start their validation in parallel
         while(!top_gps_.empty()) {
+            MyGP* current = top_gps_.top();
+            gps.push_back(current);
+            top_gps_.pop();
 
-            MyGP* gp = top_gps_.top();
+            current->set_validation_set(validation_set);
+            tp.schedule( boost::bind(&MyGP::RunValidation, current) );
+        }
+        tp.wait();
 
-            double fitness_e = gp->getFitness();
-            double fitness_v = CrawlSimulation::Run(gp, validation_set, resources, warm_up);
-            double mean = (fitness_e + fitness_v)/2;
-            double std_dev = sqrt(pow(fitness_v-mean, 2) + pow(fitness_e-mean, 2));
 
-            double score = fitness_e + fitness_v + std_dev;
 
-            top_out << "evolution:" << fitness_e <<
-                       " validation:" << fitness_v <<
-                       " std_dev:" << std_dev <<
+        for(int i =0; i < gps.size(); ++i) {
+//        while(!top_gps_.empty()) {
+
+            MyGP* gp = gps[i];
+
+//            gp->RunValidation(validation_set);
+
+            double score = gp->fitness_e + gp->fitness_v + gp->cycles_std_dev;
+//            double score = gp->fitness_e + gp->fitness_v + gp->fitness_std_dev;
+
+            top_out << "evolution:" << gp->fitness_e <<
+                       " validation:" << gp->fitness_v <<
+                       " cycles_std_dev:" << gp->cycles_std_dev <<
+                       " fitness_std_dev: "<< gp->fitness_std_dev <<
                        " score:" << score <<
                        " " << *gp;
 
@@ -72,7 +93,6 @@ public:
                 best_gp_ = (MyGP*) &gp->duplicate();
             }
 
-            top_gps_.pop();
             delete gp;
         }
 
