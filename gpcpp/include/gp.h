@@ -63,7 +63,9 @@ void GPPrintCopyright (ostream& os);
 // work I can tell.  It results in a speed loss of roughly 3%, that is
 // less than it sounds.  A good, optimising compiler can do much more
 // here.
+#ifndef GPINTERNALCHECK
 #define GPINTERNALCHECK 1
+#endif
 
 // If an error occurs (GPExitSystem()), a segmentation fault helps
 // debugging the code to find the location that caused the error
