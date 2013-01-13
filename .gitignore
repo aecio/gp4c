@@ -1,10 +1,10 @@
 /build
 /crawling/build
 /crawling/crawling
-/ant/ant
-/lawn/lawn
-/skeleton/skeleton
-/symbreg/sym
+gpcpp/ant/ant
+gpcpp/lawn/lawn
+gpcpp/skeleton/skeleton
+gpcpp/symbreg/sym
 .directory
 *.o
 *.a

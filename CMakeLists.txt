@@ -1,11 +1,11 @@
 project(GPCrawl)
 cmake_minimum_required(VERSION 2.8)
 
-include_directories(${PROJECT_SOURCE_DIR}/include)
-include_directories(${PROJECT_SOURCE_DIR}/threadpool-0_2_5-src/threadpool)
+include_directories(${PROJECT_SOURCE_DIR}/gpcpp/include)
+include_directories(${PROJECT_SOURCE_DIR}/gpcpp/threadpool-0_2_5-src/threadpool)
 include_directories(${PROJECT_SOURCE_DIR}/../libs-ext/include)
 
-link_directories(${PROJECT_SOURCE_DIR}/lib
+link_directories(${PROJECT_SOURCE_DIR}/gpcpp/lib
                  ${PROJECT_SOURCE_DIR}/../libs-ext/lib)
 
 # Flags de instalacao

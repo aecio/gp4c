@@ -9,7 +9,6 @@ all:
 	cd lawn; make
 	cd skeleton; make
 	cd ant; make
-	cd crawling; make
 
 clean:
 	rm -f *~
@@ -18,7 +17,6 @@ clean:
 	cd lawn; make clean
 	cd skeleton; make clean
 	cd ant; make clean
-	cd crawling; make clean
 
 superclean: 
 	rm -f *~
@@ -27,7 +25,6 @@ superclean:
 	cd lawn; make superclean
 	cd skeleton; make superclean
 	cd ant; make superclean
-	cd crawling; make superclean
 
 # Strip debug information (if there is any). 
 strip:
@@ -36,7 +33,6 @@ strip:
 	cd skeleton; make strip
 	cd ant; make strip
 	cd symbreg; make strip
-	cd crawling; make strip
 
 install:
 	$(INSTALL) -d $(INSTALLDIR)/include
