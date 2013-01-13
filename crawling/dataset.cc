@@ -82,8 +82,8 @@ void DataArchive::ReadFile(const std::string& filename) {
 
 
             // Max values
-            if(tmp_data.size() >= 500) break;       // max instances
-            changes.resize(20);                        // max cycles
+//            if(tmp_data.size() >= 500) break;       // max instances
+//            changes.resize(20);                        // max cycles
 
             tmp_data.push_back(changes);
         }
