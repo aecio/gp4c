@@ -34,6 +34,6 @@ set(CMAKE_CXX_FLAGS_RELEASETUNE "-Ofast -DNDEBUG -march=native -mtune=native -DG
 ##             SUBDIRETORIOS             ##
 ###########################################
 
-add_subdirectory(crawling)
+add_subdirectory(src)
 add_subdirectory(gpcpp)
 

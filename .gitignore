@@ -12,5 +12,5 @@ GPCpp.*
 *.creator.user*
 CMakeLists.txt.user*
 result.*
-crawling/svmrank/
-crawling/datasets/
+src/svmrank/
+datasets/
