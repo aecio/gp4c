@@ -69,17 +69,36 @@ void createNodeSet(GPAdfNodeSet& adfNs) {
 
     std::vector<Terminal*> terminals;
 
-    terminals.push_back(new AgeTerminal(1));
-    terminals.push_back(new ChangesTerminal(2));
-    terminals.push_back(new VisitsTerminal(3));
-    terminals.push_back(new OneTerminal(4));
-    terminals.push_back(new ChangeRateTerminal(5));
-    terminals.push_back(new ChangeProbabilityTerminal(6));
+    int id = 1;
 
-    terminals.push_back(new NADChangeRateTerminal(8));
-    terminals.push_back(new SADChangeRateTerminal(9));
-    terminals.push_back(new AADChangeRateTerminal(10));
-    terminals.push_back(new GADChangeRateTerminal(11));
+    terminals.push_back(new TAge(id++));
+    terminals.push_back(new TChanges(id++));
+    terminals.push_back(new TVisits(id++));
+
+    terminals.push_back(new TChangeProbabilityCho(id++));
+    terminals.push_back(new TChangeProbabilityNAD(id++));
+    terminals.push_back(new TChangeProbabilitySAD(id++));
+    terminals.push_back(new TChangeProbabilityAAD(id++));
+    terminals.push_back(new TChangeProbabilityGAD(id++));
+
+    terminals.push_back(new TChoChangeRate(id++));
+    terminals.push_back(new TNADChangeRate(id++));
+    terminals.push_back(new TSADChangeRate(id++));
+    terminals.push_back(new TAADChangeRate(id++));
+    terminals.push_back(new TGADChangeRate(id++));
+
+    terminals.push_back(new TConstValue(id++, 0.001));
+    terminals.push_back(new TConstValue(id++, 0.01));
+    terminals.push_back(new TConstValue(id++, 0.1));
+    terminals.push_back(new TConstValue(id++, 0.5));
+    terminals.push_back(new TConstValue(id++, 1.0));
+    terminals.push_back(new TConstValue(id++, 2.71828182));
+    terminals.push_back(new TConstValue(id++, 10));
+    terminals.push_back(new TConstValue(id++, 100));
+    terminals.push_back(new TConstValue(id++, 1000));
+
+    terminals.push_back(new TChoNumerator(id++));
+    terminals.push_back(new TChoDenominator(id++));
 
 
     // Reserve space for the node sets

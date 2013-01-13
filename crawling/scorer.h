@@ -55,7 +55,7 @@ private:
 class ChangeRateScorer : public Scorer {
 public:
     inline double Score(URL& url, int cycle) {
-        return url.GetChangeRate();
+        return url.GetChoChangeRate();
     }
     const std::string Name() {
         return "change_rate";
@@ -66,7 +66,7 @@ private:
 class ChangeProbScorer : public Scorer {
 public:
     inline double Score(URL& url, int cycle) {
-        return url.GetChangeProbability(cycle);
+        return url.GetChangeProbabilityCho(cycle);
     }
     const std::string Name() {
         return "change_prob";

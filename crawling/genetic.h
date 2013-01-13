@@ -7,7 +7,6 @@
 #include <cassert>
 #include <cmath>
 
-
 #include "gp.h"
 #include "url.h"
 #include "crawl_simulation.h"

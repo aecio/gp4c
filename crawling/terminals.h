@@ -2,8 +2,10 @@
 #define TERMINALS_H
 
 #include <iostream>
+#include <sstream>
 
 #include "gp.h"
+#include "url.h"
 
 class Terminal : public GPNode {
 public:
@@ -17,101 +19,175 @@ public:
     virtual double Value(URL& url, int cycle) = 0;
 };
 
-class AgeTerminal : public Terminal {
+class TAge : public Terminal {
 public:
-    AgeTerminal(int id): Terminal(id, "age") { }
+    TAge(int id): Terminal(id, "age") { }
     double Value(URL &url, int cycle) {
         return url.GetAge(cycle);
     }
 };
 
-class ChangesTerminal : public Terminal {
+class TChanges : public Terminal {
 public:
-    ChangesTerminal(int id): Terminal(id, "changes") { }
+    TChanges(int id): Terminal(id, "changes") { }
     double Value(URL &url, int cycle) {
         return url.changes();
     }
 };
 
-class VisitsTerminal : public Terminal {
+class TVisits : public Terminal {
 public:
-    VisitsTerminal(int id): Terminal(id, "visits") { }
+    TVisits(int id): Terminal(id, "visits") { }
     double Value(URL &url, int cycle) {
         return url.visits();
     }
 };
 
-class OneTerminal : public Terminal {
+class TConstValue : public Terminal {
 public:
-    OneTerminal(int id): Terminal(id, "1") { }
-    double Value(URL &url, int cycle) {
-        return 1.0;
+    TConstValue(int id, double value): Terminal(id, ""), value_(value) {
+        std::stringstream ss;
+        ss << value;
+        representation = copyString((char*) ss.str().c_str());
     }
+    double Value(URL &url, int cycle) {
+        return value_;
+    }
+private:
+    int value_;
 };
 
-class ChangeRateTerminal : public Terminal {
+
+class TChangeProbabilityCho : public Terminal {
 public:
-    ChangeRateTerminal(int id): Terminal(id, "change_rate") { }
+    TChangeProbabilityCho(int id): Terminal(id, "cp_cho") { }
     double Value(URL &url, int cycle) {
-        return url.GetChangeRate();
+        return url.GetChangeProbabilityCho(cycle);
     }
     void PrintTexStyle(std::ostream& os) {
-        os << "change\\_rate";
+        os << "cp\\_cho";
     }
 };
 
-class ChangeProbabilityTerminal : public Terminal {
+
+class TChangeProbabilityNAD : public Terminal {
 public:
-    ChangeProbabilityTerminal(int id): Terminal(id, "change_prob") { }
+    TChangeProbabilityNAD(int id): Terminal(id, "cp_nad") { }
     double Value(URL &url, int cycle) {
-        return url.GetChangeProbability();
+        return url.GetChangeProbabilityNAD(cycle);
     }
     void PrintTexStyle(std::ostream& os) {
-        os << "change\\_prob";
+        os << "cp\\_nad";
     }
 };
 
-class NADChangeRateTerminal : public Terminal {
+class TChangeProbabilitySAD : public Terminal {
 public:
-    NADChangeRateTerminal(int id): Terminal(id, "nad_change_rate") { }
+    TChangeProbabilitySAD(int id): Terminal(id, "cp_sad") { }
+    double Value(URL &url, int cycle) {
+        return url.GetChangeProbabilitySAD(cycle);
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "cp\\_sad";
+    }
+};
+
+class TChangeProbabilityAAD : public Terminal {
+public:
+    TChangeProbabilityAAD(int id): Terminal(id, "cp_aad") { }
+    double Value(URL &url, int cycle) {
+        return url.GetChangeProbabilityAAD(cycle);
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "cp\\_'aad'";
+    }
+};
+
+class TChangeProbabilityGAD : public Terminal {
+public:
+    TChangeProbabilityGAD(int id): Terminal(id, "cp_gad") { }
+    double Value(URL &url, int cycle) {
+        return url.GetChangeProbabilityGAD(cycle);
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "cp\\_gad";
+    }
+};
+
+class TChoChangeRate : public Terminal {
+public:
+    TChoChangeRate(int id): Terminal(id, "cho") { }
+    double Value(URL &url, int cycle) {
+        return url.GetChoChangeRate();
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "cho";
+    }
+};
+
+class TNADChangeRate : public Terminal {
+public:
+    TNADChangeRate(int id): Terminal(id, "nad") { }
     double Value(URL &url, int cycle) {
         return url.GetNADChangeRate(cycle);
     }
     void PrintTexStyle(std::ostream& os) {
-        os << "nad\\_change\\_rate";
+        os << "nad";
     }
 };
 
-class SADChangeRateTerminal : public Terminal {
+class TSADChangeRate : public Terminal {
 public:
-    SADChangeRateTerminal(int id): Terminal(id, "sad_change_rate") { }
+    TSADChangeRate(int id): Terminal(id, "sad") { }
     double Value(URL &url, int cycle) {
         return url.GetSADChangeRate(cycle);
     }
     void PrintTexStyle(std::ostream& os) {
-        os << "sad\\_change\\_rate";
+        os << "sad";
     }
 };
 
-class AADChangeRateTerminal : public Terminal {
+class TAADChangeRate : public Terminal {
 public:
-    AADChangeRateTerminal(int id): Terminal(id, "aad_change_rate") { }
+    TAADChangeRate(int id): Terminal(id, "aad") { }
     double Value(URL &url, int cycle) {
         return url.GetAADChangeRate(cycle);
     }
     void PrintTexStyle(std::ostream& os) {
-        os << "aad\\_change\\_rate";
+        os << "aad";
     }
 };
 
-class GADChangeRateTerminal : public Terminal {
+class TGADChangeRate : public Terminal {
 public:
-    GADChangeRateTerminal(int id): Terminal(id, "gad_change_rate") { }
+    TGADChangeRate(int id): Terminal(id, "gad") { }
     double Value(URL &url, int cycle) {
         return url.GetGADChangeRate(cycle);
     }
     void PrintTexStyle(std::ostream& os) {
-        os << "gad\\_change\\_rate";
+        os << "gad";
+    }
+};
+
+class TChoNumerator : public Terminal {
+public:
+    TChoNumerator(int id): Terminal(id, "cho_num") { }
+    double Value(URL &url, int cycle) {
+        return url.visits() - url.changes() + 0.5;
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "cho_num";
+    }
+};
+
+class TChoDenominator : public Terminal {
+public:
+    TChoDenominator(int id): Terminal(id, "cho_den") { }
+    double Value(URL &url, int cycle) {
+        return url.visits() + 0.5;
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "cho_den";
     }
 };
 

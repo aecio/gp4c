@@ -73,16 +73,29 @@ public:
         return cycle-last_visit_;
     }
 
-    double GetChangeRate() {
+    double GetChangeProbabilityCho(int cycle) {
+        return 1.0 - exp( - GetChoChangeRate() * GetAge(cycle));
+    }
+
+    double GetChangeProbabilityNAD(int cycle) {
+        return 1.0 - exp( - GetNADChangeRate(cycle) * GetAge(cycle));
+    }
+
+    double GetChangeProbabilitySAD(int cycle) {
+        return 1.0 - exp( - GetSADChangeRate(cycle) * GetAge(cycle));
+    }
+
+    double GetChangeProbabilityAAD(int cycle) {
+        return 1.0 - exp( - GetAADChangeRate(cycle) * GetAge(cycle));
+    }
+
+    double GetChangeProbabilityGAD(int cycle) {
+        return 1.0 - exp( - GetGADChangeRate(cycle) * GetAge(cycle));
+    }
+
+    // Cho's change rate estimator
+    double GetChoChangeRate() {
         return -log((visits_ - changes_+0.5)/(visits_+0.5));
-    }
-
-    double GetChangeProbability() {
-        return 1.0 - exp( - GetChangeRate());
-    }
-
-    double GetChangeProbability(int cycle) {
-        return 1.0 - exp( - GetChangeRate() * GetAge(cycle));
     }
 
     // Non adaptive change rate (NAD)
