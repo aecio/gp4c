@@ -79,7 +79,7 @@ char *GPNode::copyString (char *str)
 
 
 // Load operation
-char* GPNode::load (istream& is)
+const char* GPNode::load (istream& is)
 {
   char line[400];
 
@@ -267,7 +267,7 @@ GPNode* GPNodeSet::searchForNode (int value)
 
 
 // Load operation
-char* GPNodeSet::load (istream& is)
+const char *GPNodeSet::load(istream& is)
 {
   is >> numFunctions;
   is >> numTerminals;

@@ -59,7 +59,7 @@ Fax:    (UK) 061 745 5999
 
 
 // Version number
-char *GPVersion="0.5.2";
+const char *GPVersion="0.5.2";
 
 
 

@@ -56,7 +56,7 @@ using namespace std;
 
 
 // Version and copyright message
-extern char* GPVersion;
+extern const char* GPVersion;
 void GPPrintCopyright (ostream& os);
 
 // Make internal checks or not. Better do it... it saved me a lot of
@@ -120,7 +120,7 @@ public:
   virtual GPObject& duplicate ()=0;
 
   virtual int isA ()=0;
-  virtual char* load (istream& is)=0;
+  virtual const char* load (istream& is)=0;
   virtual void save (ostream& os)=0;
   virtual GPObject* createObject()=0;
 
@@ -159,7 +159,7 @@ public:
   GPObject& get (int n);
 
   virtual int isA () { return GPContainerID; }
-  virtual char* load (istream& is);
+  virtual const char* load (istream& is);
   virtual void save (ostream& os);
   virtual GPObject* createObject() { return new GPContainer; }
 
@@ -201,7 +201,7 @@ public:
   int arguments () { return numOfArgs; }
 
   virtual int isA () { return GPNodeID; }
-  virtual char* load (istream& is);
+  virtual const char *load(istream& is);
   virtual void save (ostream& os);
   virtual GPObject* createObject() { return new GPNode; }
 
@@ -247,7 +247,7 @@ public:
   virtual GPNode* chooseNodeWithArgs (int args);
 
   virtual int isA () { return GPNodeSetID; }
-  virtual char* load (istream& is);
+  virtual const char* load (istream& is);
   virtual void save (ostream& os);
   virtual GPObject* createObject() { return new GPNodeSet; }
 
@@ -350,7 +350,7 @@ public:
   virtual void printOn (ostream& os);
 
   virtual int isA () { return GPVariablesID; }
-  virtual char* load (istream& is);
+  virtual const char* load (istream& is);
   virtual void save (ostream& os);
   virtual GPObject* createObject() { return new GPVariables; }
 };
@@ -372,7 +372,7 @@ public:
     return new GPGene (gpo); }
 
   virtual int isA () { return GPGeneID; }
-  virtual char* load (istream& is);
+  virtual const char* load (istream& is);
   virtual void save (ostream& os);
   void resolveNodeValues (GPNodeSet& ns);
   virtual GPObject* createObject() { return new GPGene; }
@@ -461,7 +461,7 @@ public:
   virtual void evaluate ();
 
   virtual int isA () { return GPID; }
-  virtual char* load (istream& is);
+  virtual const char* load (istream& is);
   virtual void save (ostream& os);
   void resolveNodeValues (GPAdfNodeSet& adfNs);
   virtual GPObject* createObject() { return new GP; }
@@ -544,7 +544,7 @@ public:
   virtual void demeticMigration ();
 
   virtual int isA () { return GPID; }
-  virtual char* load (istream& is);
+  virtual const char* load (istream& is);
   virtual void save (ostream& os);
   void setNodeSets (GPAdfNodeSet& adfNs_);
   virtual GPObject* createObject() { return new GPPopulation; }

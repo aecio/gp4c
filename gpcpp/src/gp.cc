@@ -122,14 +122,14 @@ void GP::resolveNodeValues (GPAdfNodeSet& adfNs)
 
 
 // Load operation
-char* GP::load (istream& is)
+const char *GP::load(istream& is)
 {
   // Load variables
   is >> fitnessValid;
   is >> stdFitness;
 
   // Load container
-  char *errMsg=GPContainer::load (is);
+  const char *errMsg=GPContainer::load (is);
   if (errMsg) return errMsg;
 
   // We didn't save the length and depth as we can calculate them now.

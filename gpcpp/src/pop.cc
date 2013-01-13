@@ -183,10 +183,10 @@ void GPPopulation::setNodeSets (GPAdfNodeSet& adfNs_)
 
 
 // Load operation
-char* GPPopulation::load (istream& is)
+const char *GPPopulation::load(istream& is)
 {
   // Load GPVariables
-  char* errMsg=GPVar.load (is);
+  const char* errMsg=GPVar.load (is);
   if (errMsg) return errMsg;
 
   // Load container

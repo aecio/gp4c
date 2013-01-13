@@ -252,7 +252,7 @@ GPObject& GPContainer::get (int n)
 
 
 // Loading a container is more difficult than saving...
-char* GPContainer::load (istream& is)
+const char *GPContainer::load(istream& is)
 {
   int id=0;
 
@@ -285,7 +285,7 @@ char* GPContainer::load (istream& is)
 
 	  // Let the created object load itself.  Abort, of an error
 	  // occured
-	  char* errMsg=container[i]->load (is);
+      const char* errMsg=container[i]->load (is);
 	  if (errMsg) 
 	    return errMsg;
 	}
