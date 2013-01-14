@@ -19,7 +19,7 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
     }
 
     int cycle = 1;
-    for (; cycle < warm_up; ++cycle) {
+    for (; cycle <= warm_up; ++cycle) {
         for (int i = 0; i < dataset->NumInstances(); ++i) {
             if( dataset->instance(repository[i]->id)->ChangedIn(cycle) ) {
                 repository[i]->Update(cycle, true);
@@ -42,8 +42,15 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
                 repository[i]->Update(cycle, false);
                 errors++;
             }
+//            std::cout << "URL["<<i<<"] cycle="<< cycle << endl;
+//            std::cout << "nad=" << repository[i]->GetNADChangeRate(cycle) << endl;
+//            std::cout << "sad=" << repository[i]->GetSADChangeRate(cycle) << endl;
+//            std::cout << "aad=" << repository[i]->GetAADChangeRate(cycle) << endl;
+//            std::cout << "gad=" << repository[i]->GetGADChangeRate(cycle) << endl;
+//            std::cout << "cho=" << repository[i]->GetChoChangeRate() << endl;
         }
         error_rate.push_back(errors/k);
+
     }
 
     for (int i = 0; i < dataset->NumInstances(); ++i) {

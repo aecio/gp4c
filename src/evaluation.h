@@ -13,12 +13,19 @@ public:
     EvaluationReport() {
         scorers_.push_back(new RandomScorer());
         scorers_.push_back(new AgeScorer());
+
         scorers_.push_back(new SADChangeRateScorer());
         scorers_.push_back(new NADChangeRateScorer());
         scorers_.push_back(new AADChangeRateScorer());
         scorers_.push_back(new GADChangeRateScorer());
-        scorers_.push_back(new ChangeProbScorer());
-        scorers_.push_back(new ChangeRateScorer());
+        scorers_.push_back(new ChoChangeRateScorer());
+
+        scorers_.push_back(new ChoChangeProbScorer());
+        scorers_.push_back(new NADChangeProbScorer());
+        scorers_.push_back(new SADChangeProbScorer());
+        scorers_.push_back(new AADChangeProbScorer());
+        scorers_.push_back(new GADChangeProbScorer());
+
     }
 
     ~EvaluationReport() {

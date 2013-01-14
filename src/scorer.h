@@ -23,7 +23,6 @@ public:
     const std::string Name() {
         return name_;
     }
-
 private:
     MyGP* gp_;
     std::string name_;
@@ -35,7 +34,7 @@ public:
         return rand() / (double) RAND_MAX;;
     }
     const std::string Name() {
-        return "random";
+        return "rand";
     }
 private:
 };
@@ -52,24 +51,13 @@ public:
 private:
 };
 
-class ChangeRateScorer : public Scorer {
+class ChoChangeRateScorer : public Scorer {
 public:
     inline double Score(URL& url, int cycle) {
         return url.GetChoChangeRate();
     }
     const std::string Name() {
-        return "change_rate";
-    }
-private:
-};
-
-class ChangeProbScorer : public Scorer {
-public:
-    inline double Score(URL& url, int cycle) {
-        return url.GetChangeProbabilityCho(cycle);
-    }
-    const std::string Name() {
-        return "change_prob";
+        return "cho";
     }
 private:
 };
@@ -114,6 +102,61 @@ public:
     }
     const std::string Name() {
         return "gad";
+    }
+private:
+};
+
+class ChoChangeProbScorer : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+        return url.GetChangeProbabilityCho(cycle);
+    }
+    const std::string Name() {
+        return "cho_prob";
+    }
+private:
+};
+
+class NADChangeProbScorer : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+        return url.GetChangeProbabilityNAD(cycle);
+    }
+    const std::string Name() {
+        return "nad_prob";
+    }
+private:
+};
+
+class SADChangeProbScorer : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+        return url.GetChangeProbabilitySAD(cycle);
+    }
+    const std::string Name() {
+        return "sad_prob";
+    }
+private:
+};
+
+class AADChangeProbScorer : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+        return url.GetChangeProbabilityAAD(cycle);
+    }
+    const std::string Name() {
+        return "aad_prob";
+    }
+private:
+};
+
+class GADChangeProbScorer : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+        return url.GetChangeProbabilityGAD(cycle);
+    }
+    const std::string Name() {
+        return "gad_prob";
     }
 private:
 };

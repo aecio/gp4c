@@ -57,60 +57,58 @@ private:
     int value_;
 };
 
-
 class TChangeProbabilityCho : public Terminal {
 public:
-    TChangeProbabilityCho(int id): Terminal(id, "cp_cho") { }
+    TChangeProbabilityCho(int id): Terminal(id, "cho_prob") { }
     double Value(URL &url, int cycle) {
         return url.GetChangeProbabilityCho(cycle);
     }
     void PrintTexStyle(std::ostream& os) {
-        os << "cp\\_cho";
+        os << "cho\\_prob";
     }
 };
 
-
 class TChangeProbabilityNAD : public Terminal {
 public:
-    TChangeProbabilityNAD(int id): Terminal(id, "cp_nad") { }
+    TChangeProbabilityNAD(int id): Terminal(id, "nad_prob") { }
     double Value(URL &url, int cycle) {
         return url.GetChangeProbabilityNAD(cycle);
     }
     void PrintTexStyle(std::ostream& os) {
-        os << "cp\\_nad";
+        os << "nad\\_prob";
     }
 };
 
 class TChangeProbabilitySAD : public Terminal {
 public:
-    TChangeProbabilitySAD(int id): Terminal(id, "cp_sad") { }
+    TChangeProbabilitySAD(int id): Terminal(id, "sad_prob") { }
     double Value(URL &url, int cycle) {
         return url.GetChangeProbabilitySAD(cycle);
     }
     void PrintTexStyle(std::ostream& os) {
-        os << "cp\\_sad";
+        os << "sad\\_prob";
     }
 };
 
 class TChangeProbabilityAAD : public Terminal {
 public:
-    TChangeProbabilityAAD(int id): Terminal(id, "cp_aad") { }
+    TChangeProbabilityAAD(int id): Terminal(id, "aad_prob") { }
     double Value(URL &url, int cycle) {
         return url.GetChangeProbabilityAAD(cycle);
     }
     void PrintTexStyle(std::ostream& os) {
-        os << "cp\\_'aad'";
+        os << "aad\\_prob";
     }
 };
 
 class TChangeProbabilityGAD : public Terminal {
 public:
-    TChangeProbabilityGAD(int id): Terminal(id, "cp_gad") { }
+    TChangeProbabilityGAD(int id): Terminal(id, "gad_prob") { }
     double Value(URL &url, int cycle) {
         return url.GetChangeProbabilityGAD(cycle);
     }
     void PrintTexStyle(std::ostream& os) {
-        os << "cp\\_gad";
+        os << "gad\\_prob";
     }
 };
 
@@ -176,7 +174,7 @@ public:
         return url.visits() - url.changes() + 0.5;
     }
     void PrintTexStyle(std::ostream& os) {
-        os << "cho_num";
+        os << "cho\\_num";
     }
 };
 
@@ -187,7 +185,7 @@ public:
         return url.visits() + 0.5;
     }
     void PrintTexStyle(std::ostream& os) {
-        os << "cho_den";
+        os << "cho\\_den";
     }
 };
 

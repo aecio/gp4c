@@ -22,8 +22,6 @@
 #include "evaluation.h"
 
 
-
-
 // Define configuration parameters and the neccessary array to
 // read/write the configuration to a file. If you need more variables,
 // just add them below and insert an entry in the configArray.
