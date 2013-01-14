@@ -28,6 +28,7 @@ public:
         double pow_2_i_minus_1[MAX_SUM+1];
     };
 
+    static const int kDefaultWindowSize = 32;
     static const Sum kSum;
 
     URL() : id(0),
@@ -117,7 +118,7 @@ public:
         double nad = 0.0;
         for (int h = 0; h < history.size(); ++h) {
                 nad += weight;
-                int i = history[h];
+//                int i = history[h];
 //                std::cout << " cycle=" << cycle
 //                          << " i=" << i
 //                          << " weight=" << weight
@@ -125,6 +126,36 @@ public:
 //                          << std::endl;
         }
 //        std::cout << "NAD=" << nad << std::endl;
+
+        nad_cached_cycle_ = cycle;
+        nad_cached_value_ = nad;
+
+        return nad;
+    }
+
+    // Windowed non-adaptive change rate (NAD)
+    double GetWindowedNADChangeRate(int cycle) {
+        if(nad_cached_cycle_ == cycle) return nad_cached_value_;
+
+//        std::cout << "WNADChangeRate()" << std::endl;
+
+        int window_size = GetWindowSize(cycle);
+        int window_start = cycle - 1 - window_size;
+
+        double weight = 1.0 / (window_size);
+        double nad = 0.0;
+        for (int h = 0; h < history.size(); ++h) {
+            if(history[h] > window_start) {
+                nad += weight;
+//                std::cout << " cycle=" << cycle
+//                          << " window_size=" << window_size
+//                          << " window_start=" << window_start
+//                          << " weight=" << weight
+//                          << " wnad=" << nad
+//                          << std::endl;
+            }
+        }
+//        std::cout << "WNAD=" << nad << std::endl;
 
         nad_cached_cycle_ = cycle;
         nad_cached_value_ = nad;
@@ -167,6 +198,41 @@ public:
         return aad;
     }
 
+    // Windowed arithmetically adaptive change rate (AAD)
+    double GetWindoedAADChangeRate(int cycle) {
+        if(aad_cached_cycle_ == cycle) return aad_cached_value_;
+//        std::cout << "WADDChangeRate()" << std::endl;
+        int window_size = GetWindowSize(cycle);
+        int window_start = cycle - 1 - window_size;
+
+        double aad = 0.0;
+        for (int h = 0; h < history.size(); ++h) {
+            if(history[h] > window_start) {
+                double i = history[h] - window_start;
+//                double i = history[h];
+
+//                double weight = i / kSum.AAD(cycle-1);
+                double weight = i / kSum.AAD(window_size);
+
+                aad += weight;
+//                std::cout << " cycle=" << cycle
+//                          << " i=" << i
+//                          << " window_size=" << window_size
+//                          << " window_start=" << window_start
+//                          << " sum_aad[i]=" << kSum.AAD(i)
+//                          << " weight=" << weight
+//                          << " wad=" << aad
+//                          << std::endl;
+            }
+        }
+//        std::cout << "ADD=" << aad << std::endl;
+
+        aad_cached_cycle_ = cycle;
+        aad_cached_value_ = aad;
+
+        return aad;
+    }
+
     // Geometrically adaptive change rate (GAD)
     double GetGADChangeRate(int cycle) {
         if(gad_cached_cycle_ == cycle) return gad_cached_value_;
@@ -186,6 +252,44 @@ public:
 //                      << std::endl;
         }
 //        std::cout << "GAD=" << gad << std::endl;
+
+        gad_cached_cycle_ = cycle;
+        gad_cached_value_ = gad;
+
+        return gad;
+    }
+
+    int GetWindowSize(int cycle) {
+        return std::min(kDefaultWindowSize, cycle-1);
+    }
+
+    // Windowed geometrically adaptive change rate (GAD)
+    double GetWindowedGADChangeRate(int cycle) {
+        if(gad_cached_cycle_ == cycle) return gad_cached_value_;
+
+//        std::cout << "WGADChangeRate()" << std::endl;
+        int window_size = GetWindowSize(cycle);
+        int window_start = cycle - 1 - window_size;
+
+        double gad = 0.0;
+        for (int h = 0; h < history.size(); ++h) {
+            if(history[h] > window_start) {
+//                double i = history[h];
+                double i = history[h] - window_start;
+
+                double weight = kSum.Pow2i1(i) / kSum.GAD(window_size);
+                gad += weight;
+//                std::cout << " cycle=" << cycle
+//                          << " i=" << i
+//                          << " window_size=" << window_size
+//                          << " window_start=" << window_start
+//                          << " sum_gad[i]=" << kSum.GAD(i)
+//                          << " weight=" << weight
+//                          << " wgad=" << gad
+//                          << std::endl;
+            }
+        }
+//        std::cout << "WGAD=" << gad << std::endl;
 
         gad_cached_cycle_ = cycle;
         gad_cached_value_ = gad;

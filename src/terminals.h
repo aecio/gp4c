@@ -123,6 +123,10 @@ public:
     }
 };
 
+//
+// Non-windowed Tan's Adaptive Change Rates
+//
+
 class TNADChangeRate : public Terminal {
 public:
     TNADChangeRate(int id): Terminal(id, "nad") { }
@@ -166,6 +170,43 @@ public:
         os << "gad";
     }
 };
+
+// Windowed Change Rates
+
+class TWindowedNADChangeRate : public Terminal {
+public:
+    TWindowedNADChangeRate(int id): Terminal(id, "wnad") { }
+    double Value(URL &url, int cycle) {
+        return url.GetWindowedNADChangeRate(cycle);
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "wnad";
+    }
+};
+
+class TWindowedAADChangeRate : public Terminal {
+public:
+    TWindowedAADChangeRate(int id): Terminal(id, "waad") { }
+    double Value(URL &url, int cycle) {
+        return url.GetWindoedAADChangeRate(cycle);
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "waad";
+    }
+};
+
+class TWindowedGADChangeRate : public Terminal {
+public:
+    TWindowedGADChangeRate(int id): Terminal(id, "wgad") { }
+    double Value(URL &url, int cycle) {
+        return url.GetWindowedGADChangeRate(cycle);
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "wgad";
+    }
+};
+
+// Other terminals
 
 class TChoNumerator : public Terminal {
 public:
