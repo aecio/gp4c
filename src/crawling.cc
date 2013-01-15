@@ -79,6 +79,10 @@ void createNodeSet(GPAdfNodeSet& adfNs) {
     terminals.push_back(new TChangeProbabilityAAD(id++));
     terminals.push_back(new TChangeProbabilityGAD(id++));
 
+    terminals.push_back(new TChangeProbabilityWNAD(id++));
+    terminals.push_back(new TChangeProbabilityWAAD(id++));
+    terminals.push_back(new TChangeProbabilityWGAD(id++));
+
     terminals.push_back(new TChoChangeRate(id++));
 
     terminals.push_back(new TNADChangeRate(id++));

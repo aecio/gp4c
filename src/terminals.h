@@ -112,6 +112,43 @@ public:
     }
 };
 
+// Windowed Change Probabilities
+
+class TChangeProbabilityWNAD : public Terminal {
+public:
+    TChangeProbabilityWNAD(int id): Terminal(id, "wnad_prob") { }
+    double Value(URL &url, int cycle) {
+        return url.GetChangeProbabilityWNAD(cycle);
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "wnad\\_prob";
+    }
+};
+
+class TChangeProbabilityWAAD : public Terminal {
+public:
+    TChangeProbabilityWAAD(int id): Terminal(id, "waad_prob") { }
+    double Value(URL &url, int cycle) {
+        return url.GetChangeProbabilityWAAD(cycle);
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "waad\\_prob";
+    }
+};
+
+class TChangeProbabilityWGAD : public Terminal {
+public:
+    TChangeProbabilityWGAD(int id): Terminal(id, "wgad_prob") { }
+    double Value(URL &url, int cycle) {
+        return url.GetChangeProbabilityWGAD(cycle);
+    }
+    void PrintTexStyle(std::ostream& os) {
+        os << "wgad\\_prob";
+    }
+};
+
+// Change Rates
+
 class TChoChangeRate : public Terminal {
 public:
     TChoChangeRate(int id): Terminal(id, "cho") { }
@@ -188,7 +225,7 @@ class TWindowedAADChangeRate : public Terminal {
 public:
     TWindowedAADChangeRate(int id): Terminal(id, "waad") { }
     double Value(URL &url, int cycle) {
-        return url.GetWindoedAADChangeRate(cycle);
+        return url.GetWindowedAADChangeRate(cycle);
     }
     void PrintTexStyle(std::ostream& os) {
         os << "waad";

@@ -103,6 +103,21 @@ public:
         return 1.0 - exp( - GetGADChangeRate(cycle) * GetAge(cycle));
     }
 
+    // Widowed change probabilities
+
+    double GetChangeProbabilityWNAD(int cycle) {
+        return 1.0 - exp( - GetWindowedNADChangeRate(cycle) * GetAge(cycle));
+    }
+
+    double GetChangeProbabilityWAAD(int cycle) {
+        return 1.0 - exp( - GetWindowedAADChangeRate(cycle) * GetAge(cycle));
+    }
+
+    double GetChangeProbabilityWGAD(int cycle) {
+        return 1.0 - exp( - GetWindowedGADChangeRate(cycle) * GetAge(cycle));
+    }
+
+
     // Cho's change rate estimator
     double GetChoChangeRate() {
         return -log((visits_ - changes_+0.5)/(visits_+0.5));
@@ -199,7 +214,7 @@ public:
     }
 
     // Windowed arithmetically adaptive change rate (AAD)
-    double GetWindoedAADChangeRate(int cycle) {
+    double GetWindowedAADChangeRate(int cycle) {
         if(aad_cached_cycle_ == cycle) return aad_cached_value_;
 //        std::cout << "WADDChangeRate()" << std::endl;
         int window_size = GetWindowSize(cycle);
