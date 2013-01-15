@@ -189,7 +189,7 @@ int main(int argc, char** argv) {
     DataArchive data_file;
     data_file.Init(dataset_filename);
 
-    const int warm_up = 3; // Nuber of initial visits to get basic statistics of change
+    const int warm_up = 2; // Nuber of initial visits to get basic statistics of change
     const double resources = 0.05;
     const int num_folds = 5;
     const int max_top_gps = cfg.NumberOfGenerations * 3;
