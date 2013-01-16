@@ -1,6 +1,52 @@
+#include <cassert>
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+
 #include "dataset.h"
 
 using namespace std;
+
+double Dataset::IDCG(int cycle) {
+    #ifndef NDEBUG
+    if(!idcg_ready_) {
+        abort();
+    }
+    #endif
+    return idcg_[cycle];
+}
+
+int comparator_cycle;
+bool CycleComparator(const Dataset::Instance* a, const Dataset::Instance* b) {
+    return a->ChangedIn(comparator_cycle) > b->ChangedIn(comparator_cycle);
+}
+
+void Dataset::ComputeIDCG() {
+    std::cout << "Computing IDCG..." << std::endl;
+    std::vector<const Instance*> data(this->instances_);
+    idcg_.resize(this->NumCycles()+1);
+    pages_changed.resize(this->NumCycles()+1);
+    for(int cycle = 1; cycle <= this->NumCycles(); cycle++) {
+        comparator_cycle = cycle;
+        std::sort(data.begin(), data.end(), CycleComparator);
+        idcg_[cycle] = 0;
+
+        for (int i = 1; i <= data.size() && data[i-1]->ChangedIn(cycle); ++i) {
+            pages_changed[cycle]++;
+            if (i == 1) {
+                idcg_[cycle] = pow(2, data[i-1]->ChangedIn(cycle)) - 1;
+            } else {
+                idcg_[cycle] += (pow(2, data[i-1]->ChangedIn(cycle)) - 1) / (log(i + 1));
+            }
+//            std::cout << "i="<< i
+//                      << " changed=" << data[i-1]->ChangedIn(cycle)
+//                      << " idcg[i]=" << idcg_[cycle] << std::endl;
+        }
+    }
+
+    idcg_ready_ = true;
+}
 
 Dataset Dataset::testCV(int num_folds, int current_fold) {
 
@@ -19,6 +65,7 @@ Dataset Dataset::testCV(int num_folds, int current_fold) {
     cout << "Created cross-validation test set " << current_fold
          << " of " << num_folds << " with "
          << test.NumInstances() << " instances." << endl;
+    test.ComputeIDCG();
     return test;
 }
 
@@ -42,6 +89,7 @@ Dataset Dataset::trainCV(int num_folds, int current_fold) {
     cout << "Created cross-validation train set " << current_fold
          << " of " << num_folds << " with "
          << train.NumInstances() << " instances." << endl;
+    train.ComputeIDCG();
     return train;
 }
 
@@ -54,7 +102,7 @@ void Dataset::CopyInstances(int from, Dataset& dest, int num) {
 void DataArchive::Init(const std::string& filename) {
     std::cout << "Loading UCLA WebArchive dataset..." << std::endl;
     ReadFile(filename);
-
+    dataset_.ComputeIDCG();
     std::cout << "Loaded " << dataset_.NumInstances()
               << " instances and "
               << dataset_.NumCycles() << " cycles "
@@ -82,8 +130,8 @@ void DataArchive::ReadFile(const std::string& filename) {
 
 
             // Max values
-//            if(tmp_data.size() >= 500) break;       // max instances
-//            changes.resize(20);                        // max cycles
+            if(tmp_data.size() >= 100) break;       // max instances
+            changes.resize(10);                        // max cycles
 
             tmp_data.push_back(changes);
         }

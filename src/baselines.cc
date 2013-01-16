@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <fstream>
 
 #include "dataset.h"
 #include "scorer.h"

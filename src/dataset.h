@@ -1,14 +1,9 @@
 #ifndef DATASET_H
 #define DATASET_H
 
-#include <ostream>
-#include <cassert>
 #include <algorithm>
-#include <fstream>
-#include <iostream>
-#include <string>
 #include <vector>
-#include <sstream>
+#include <string>
 
 class Dataset {
 public:
@@ -33,9 +28,14 @@ public:
         std::string changes_;
     };
 
+    Dataset(): idcg_ready_(false) { }
+
     const Instance* instance(int i) const {
         return instances_[i];
     }
+
+    void ComputeIDCG();
+    double IDCG(int cycle);
 
     int NumInstances() const {
         return instances_.size();
@@ -60,8 +60,10 @@ public:
 private:
 
     void CopyInstances(int from, Dataset& dest, int num);
-
     std::vector<const Instance*> instances_;
+    std::vector<double> idcg_;
+    std::vector<int> pages_changed;
+    bool idcg_ready_;
 };
 
 class DataArchive {
