@@ -275,7 +275,11 @@ public:
     }
 
     int GetWindowSize(int cycle) {
-        return std::min(kDefaultWindowSize, cycle-1);
+//        return std::min(kDefaultWindowSize, cycle-1);
+        if(kDefaultWindowSize < cycle-1)
+            return kDefaultWindowSize;
+        else
+            return cycle-1;
     }
 
     // Windowed geometrically adaptive change rate (GAD)
