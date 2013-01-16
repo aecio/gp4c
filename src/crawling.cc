@@ -272,7 +272,7 @@ int main(int argc, char** argv) {
         cout << "Best GP using validation method:" << endl;
         cout << *best_gp << endl;
 
-        cout << "================= Test Phase ================" << endl;
+        cout << "------------------ Test Phase -----------------" << endl;
         ostringstream fold_filename;
         fold_filename  << InfoFileName << ".fold" << fold << ends;
         ofstream fold_result_out(fold_filename.str().c_str());

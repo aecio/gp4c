@@ -7,32 +7,9 @@
 #include "dataset.h"
 #include "scorer.h"
 
+
 class EvaluationReport {
 public:
-
-    EvaluationReport() {
-        scorers_.push_back(new RandomScorer());
-        scorers_.push_back(new AgeScorer());
-
-        scorers_.push_back(new SADChangeRateScorer());
-        scorers_.push_back(new NADChangeRateScorer());
-        scorers_.push_back(new AADChangeRateScorer());
-        scorers_.push_back(new GADChangeRateScorer());
-        scorers_.push_back(new ChoChangeRateScorer());
-
-        scorers_.push_back(new ChoChangeProbScorer());
-        scorers_.push_back(new NADChangeProbScorer());
-        scorers_.push_back(new SADChangeProbScorer());
-        scorers_.push_back(new AADChangeProbScorer());
-        scorers_.push_back(new GADChangeProbScorer());
-
-    }
-
-    ~EvaluationReport() {
-        for (int i = 0; i < scorers_.size(); ++i) {
-            delete scorers_[i];
-        }
-    }
 
     void Evaluate(std::vector<Scorer*>& gp_scorers, Dataset* dataset,
                   double resources, int warm_up, ostream& out) {

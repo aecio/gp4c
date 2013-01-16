@@ -28,6 +28,8 @@ private:
     std::string name_;
 };
 
+// Basic scorers
+
 class RandomScorer : public Scorer {
 public:
     inline double Score(URL& url, int cycle) {
@@ -50,6 +52,8 @@ public:
     }
 private:
 };
+
+// Change rate scorers
 
 class ChoChangeRateScorer : public Scorer {
 public:
@@ -106,6 +110,8 @@ public:
 private:
 };
 
+// Change probability scorers
+
 class ChoChangeProbScorer : public Scorer {
 public:
     inline double Score(URL& url, int cycle) {
@@ -157,6 +163,76 @@ public:
     }
     const std::string Name() {
         return "gad_prob";
+    }
+private:
+};
+
+//  Windowed change prob scorers
+
+class WNADChangeProbScorer : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+        return url.GetChangeProbabilityWNAD(cycle);
+    }
+    const std::string Name() {
+        return "wnad_prob";
+    }
+private:
+};
+
+class WAADChangeProbScorer : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+        return url.GetChangeProbabilityAAD(cycle);
+    }
+    const std::string Name() {
+        return "waad_prob";
+    }
+private:
+};
+
+class WGADChangeProbScorer : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+        return url.GetChangeProbabilityWGAD(cycle);
+    }
+    const std::string Name() {
+        return "wgad_prob";
+    }
+private:
+};
+
+// Windowed change rate scorers
+
+class WNADChangeRateScorer : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+        return url.GetWindowedNADChangeRate(cycle);
+    }
+    const std::string Name() {
+        return "wnad";
+    }
+private:
+};
+
+class WAADChangeRateScorer : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+        return url.GetWindowedAADChangeRate(cycle);
+    }
+    const std::string Name() {
+        return "waad";
+    }
+private:
+};
+
+class WGADChangeRateScorer : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+        return url.GetWindowedGADChangeRate(cycle);
+    }
+    const std::string Name() {
+        return "wgad";
     }
 private:
 };

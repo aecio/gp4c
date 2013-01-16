@@ -1,5 +1,4 @@
-set(SRC_LIST crawling.cc
-             crawl_simulation.cc
+set(SRC_LIST crawl_simulation.cc
              dataset.cc
              genetic.cc
              scorer.cc
@@ -19,5 +18,8 @@ set(HEADER_LIST crawl_simulation.h
 
 #aux_source_directory(. SRC_LIST)
 
-add_executable(crawling ${SRC_LIST} ${HEADER_LIST})
+add_executable(crawling crawling.cc ${SRC_LIST} ${HEADER_LIST})
 target_link_libraries(crawling gp m boost_system boost_thread pthread)
+
+add_executable(baselines baselines.cc ${SRC_LIST} ${HEADER_LIST})
+target_link_libraries(baselines gp m boost_system boost_thread pthread)
