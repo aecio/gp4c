@@ -69,7 +69,7 @@ void createNodeSet(GPAdfNodeSet& adfNs) {
 
     int id = 1;
 
-    terminals.push_back(new TAge(id++));
+    terminals.push_back(new TTimeSinceLastVisit(id++));
     terminals.push_back(new TChanges(id++));
     terminals.push_back(new TVisits(id++));
 
@@ -79,9 +79,9 @@ void createNodeSet(GPAdfNodeSet& adfNs) {
     terminals.push_back(new TChangeProbabilityAAD(id++));
     terminals.push_back(new TChangeProbabilityGAD(id++));
 
-    terminals.push_back(new TChangeProbabilityWNAD(id++));
-    terminals.push_back(new TChangeProbabilityWAAD(id++));
-    terminals.push_back(new TChangeProbabilityWGAD(id++));
+//    terminals.push_back(new TChangeProbabilityWNAD(id++));
+//    terminals.push_back(new TChangeProbabilityWAAD(id++));
+//    terminals.push_back(new TChangeProbabilityWGAD(id++));
 
     terminals.push_back(new TChoChangeRate(id++));
 
@@ -90,9 +90,9 @@ void createNodeSet(GPAdfNodeSet& adfNs) {
     terminals.push_back(new TAADChangeRate(id++));
     terminals.push_back(new TGADChangeRate(id++));
 
-    terminals.push_back(new TWindowedNADChangeRate(id++));
-    terminals.push_back(new TWindowedAADChangeRate(id++));
-    terminals.push_back(new TWindowedGADChangeRate(id++));
+//    terminals.push_back(new TWindowedNADChangeRate(id++));
+//    terminals.push_back(new TWindowedAADChangeRate(id++));
+//    terminals.push_back(new TWindowedGADChangeRate(id++));
 
     terminals.push_back(new TConstValue(id++, 0.001));
     terminals.push_back(new TConstValue(id++, 0.01));
@@ -104,8 +104,8 @@ void createNodeSet(GPAdfNodeSet& adfNs) {
     terminals.push_back(new TConstValue(id++, 100));
     terminals.push_back(new TConstValue(id++, 1000));
 
-    terminals.push_back(new TChoNumerator(id++));
-    terminals.push_back(new TChoDenominator(id++));
+//    terminals.push_back(new TChoNumerator(id++));
+//    terminals.push_back(new TChoDenominator(id++));
 
 
     // Reserve space for the node sets
@@ -132,11 +132,12 @@ void newHandler () {
 
 int main(int argc, char** argv) {
 
-    if(argc != 2) {
-        cerr << "Usage: "<< argv[0] << " <dataset_file>" << endl;
+    if(argc != 3) {
+        cerr << "Usage: "<< argv[0] << " <seed> <dataset_file>" << endl;
         exit(1);
     }
-    std::string dataset_filename = argv[1];
+    std::string dataset_filename = argv[2];
+    int seed = atoi(argv[1]);
 
     // We set up a new-handler, because we might need a lot of memory,
     // and we don't know it's there.
@@ -145,7 +146,7 @@ int main(int argc, char** argv) {
     cout << "================= GPC++ Config ==============" << endl;
 
     // Init GP system.
-    GPInit(0, -1);
+    GPInit(0, seed);
 
     // Declare the GP Variables, set defaults and read configuration
     // file.  The defaults will be overwritten by the configuration file
@@ -182,6 +183,9 @@ int main(int argc, char** argv) {
 
     cout << adfNs << endl;
     fout << adfNs << endl;
+
+    cout << "Seed value: " << seed << endl;
+    cout << endl;
 
     cout << "=============================================" << endl;
 

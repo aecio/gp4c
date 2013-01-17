@@ -19,9 +19,9 @@ public:
     virtual double Value(URL& url, int cycle) = 0;
 };
 
-class TAge : public Terminal {
+class TTimeSinceLastVisit : public Terminal {
 public:
-    TAge(int id): Terminal(id, "age") { }
+    TTimeSinceLastVisit(int id): Terminal(id, "t") { }
     double Value(URL &url, int cycle) {
         return url.GetAge(cycle);
     }
@@ -29,7 +29,7 @@ public:
 
 class TChanges : public Terminal {
 public:
-    TChanges(int id): Terminal(id, "changes") { }
+    TChanges(int id): Terminal(id, "X") { }
     double Value(URL &url, int cycle) {
         return url.changes();
     }
@@ -37,7 +37,7 @@ public:
 
 class TVisits : public Terminal {
 public:
-    TVisits(int id): Terminal(id, "visits") { }
+    TVisits(int id): Terminal(id, "n") { }
     double Value(URL &url, int cycle) {
         return url.visits();
     }
