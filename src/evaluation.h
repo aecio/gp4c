@@ -2,6 +2,7 @@
 #define EVALUATION_H
 
 #include <ostream>
+#include <sstream>
 
 #include "crawl_simulation.h"
 #include "dataset.h"
@@ -11,8 +12,19 @@
 class EvaluationReport {
 public:
 
+    EvaluationReport(const std::string info_file_name):
+        info_file_name_(info_file_name) { }
+
     void Evaluate(std::vector<Scorer*>& gp_scorers, Dataset* dataset,
-                  double resources, int warm_up, ostream& out) {
+                  double resources, int warm_up, int fold) {
+
+        ostringstream changerate_filename;
+        changerate_filename << info_file_name_ << ".changerate.fold" << fold << ends;
+        ofstream crate_out(changerate_filename.str().c_str());
+
+        ostringstream ndcg_filename;
+        ndcg_filename << info_file_name_ << ".ndcg.fold" << fold << ends;
+        ofstream ndcg_out(ndcg_filename.str().c_str());
 
         int current_fold = results_.size();
         results_.resize(current_fold+1);
@@ -32,41 +44,64 @@ public:
 
         // Print results of each cycle
         for (int j = 0; j < scorers_.size(); ++j) {
-            out << scorers_[j]->Name() << ";";
+            crate_out << scorers_[j]->Name() << ";";
+            ndcg_out << scorers_[j]->Name() << ";";
         }
-        out << endl;
+        crate_out << endl;
+        ndcg_out << endl;
         for(int i = 0; i < dataset->NumCycles()-warm_up; ++i) {
             for (int j = 0; j < scorers_.size(); ++j) {
-                out << simulators[j].ErrorRates()[i] << ";";
+                crate_out << simulators[j].ErrorRates()[i] << ";";
+                ndcg_out << simulators[j].NDCGs()[i] << ";";
             }
-            out << endl;
+            crate_out << endl;
+            ndcg_out << endl;
         }
 
         // Print mean change ratio
         for (int j = 0; j < scorers_.size(); ++j) {
-            out << scorers_[j]->Name() << ";";
+            crate_out << scorers_[j]->Name() << ";";
+            ndcg_out << scorers_[j]->Name() << ";";
         }
-        out << endl;
+        crate_out << endl;
+        ndcg_out << endl;
         for (int j = 0; j < scorers_.size(); ++j) {
-            out << simulators[j].AverageErrorRate() << ";";
+            crate_out << simulators[j].AverageErrorRate() << ";";
+            ndcg_out << simulators[j].AverageNDCG() << ";";
         }
-        out << endl;
+        crate_out << endl;
+        ndcg_out << endl;
 
         // Remove GP scorers of this fold
         for (int i = 0; i < gp_scorers.size(); ++i) {
             scorers_.pop_back();
         }
+
+        crate_out.close();
+        ndcg_out.close();
     }
 
-    void Sumarize(std::vector<std::string>& names, std::ostream& out) {
+    void Sumarize(std::vector<std::string>& names) {
+
+        ostringstream changerate_filename;
+        changerate_filename << info_file_name_ << ".changerate.mean" << ends;
+        ofstream crate_out(changerate_filename.str().c_str());
+
+        ostringstream ndcg_filename;
+        ndcg_filename << info_file_name_ << ".ndcg.mean" << ends;
+        ofstream ndcg_out(ndcg_filename.str().c_str());
+
         // Print results of each cycle
         for (int j = 0; j < scorers_.size(); ++j) {
-            out << scorers_[j]->Name() << ";";
+            crate_out << scorers_[j]->Name() << ";";
+            ndcg_out << scorers_[j]->Name() << ";";
         }
         for (int i = 0; i < names.size(); ++i) {
-            out << names[i] << ";";
+            crate_out << names[i] << ";";
+            ndcg_out << names[i] << ";";
         }
-        out << endl;
+        crate_out << endl;
+        ndcg_out << endl;
 
         std::vector< std::vector<double> > means;
         means.resize(scorers_.size());
@@ -75,46 +110,73 @@ public:
         for (int cycle = 0; cycle < n_cycles; ++cycle) {
             int n_scorers = results_[0].size();
             for (int scorer = 0; scorer < n_scorers; ++scorer) {
+                double sum;
+                double mean;
 
-                double sum = 0.0;
+                sum = 0.0;
                 for (int fold = 0; fold < results_.size(); ++fold) {
                     sum += results_[fold][scorer].ErrorRates()[cycle];
                 }
-                double mean = sum / results_.size();
+                mean = sum / results_.size();
+                crate_out << mean << ";";
 
-                out << mean << ";";
+                sum = 0.0;
+                for (int fold = 0; fold < results_.size(); ++fold) {
+                    sum += results_[fold][scorer].NDCGs()[cycle];
+                }
+                mean = sum / results_.size();
+
+                ndcg_out << mean << ";";
             }
-            out << endl;
+            crate_out << endl;
+            ndcg_out << endl;
         }
 
         // Print results of each cycle
         for (int j = 0; j < scorers_.size(); ++j) {
-            out << scorers_[j]->Name() << ";";
+            crate_out << scorers_[j]->Name() << ";";
+            ndcg_out << scorers_[j]->Name() << ";";
         }
         for (int i = 0; i < names.size(); ++i) {
-            out << names[i] << ";";
+            crate_out << names[i] << ";";
+            ndcg_out << names[i] << ";";
         }
-        out << endl;
+        crate_out << endl;
+        ndcg_out << endl;
 
 
         int n_scorers = results_[0].size();
         for (int scorer = 0; scorer < n_scorers; ++scorer) {
+            double sum;
+            double mean;
 
-            double sum = 0.0;
+            sum = 0.0;
             for (int fold = 0; fold < results_.size(); ++fold) {
                 sum += results_[fold][scorer].AverageErrorRate();
             }
-            double mean = sum / results_.size();
+            mean = sum / results_.size();
+            crate_out << mean << ";";
 
-            out << mean << ";";
+
+            sum = 0.0;
+            for (int fold = 0; fold < results_.size(); ++fold) {
+                sum += results_[fold][scorer].AverageNDCG();
+            }
+            mean = sum / results_.size();
+
+            ndcg_out << mean << ";";
         }
-        out << endl;
+        crate_out << endl;
+        ndcg_out << endl;
 
+        crate_out.close();
+        ndcg_out.close();
     }
 
 private:
     std::vector<Scorer*> scorers_;
     std::vector< std::vector<CrawlSimulation> > results_;
+    std::string info_file_name_;
 };
 
 #endif // EVALUATION_H

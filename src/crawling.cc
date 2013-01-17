@@ -193,7 +193,7 @@ int main(int argc, char** argv) {
     const double resources = 0.05;
     const int num_folds = 5;
     const int max_top_gps = cfg.NumberOfGenerations * 3;
-    EvaluationReport evaluation;
+    EvaluationReport evaluation(InfoFileName);
 
 
     for (int fold = 0; fold < num_folds; ++fold) {
@@ -273,42 +273,29 @@ int main(int argc, char** argv) {
         cout << *best_gp << endl;
 
         cout << "------------------ Test Phase -----------------" << endl;
-        ostringstream fold_filename;
-        fold_filename  << InfoFileName << ".fold" << fold << ends;
-        ofstream fold_result_out(fold_filename.str().c_str());
 
         cout << "Testing best individual and baselines..." << endl;
-        GPScorer gp_last((MyGP*)pop->NthGP(pop->bestOfPopulation), "gp_last");
-        GPScorer gp_val(best_gp,"gp_val");
+        GPScorer gp_last((MyGP*)pop->NthGP(pop->bestOfPopulation), "gp_best");
+        GPScorer gp_val(best_gp,"gp_sum");
 
         std::vector<Scorer*> scorers;
         scorers.push_back(&gp_last);
         scorers.push_back(&gp_val);
 
-        evaluation.Evaluate(scorers, &test_set, resources, warm_up, fold_result_out);
-
-        fold_result_out.close();
-        cout << "Results written into file: " << fold_filename.str() << endl;
+        evaluation.Evaluate(scorers, &test_set, resources, warm_up, fold);
     }
 
-    ostringstream fold_mean_filename;
-    fold_mean_filename  << InfoFileName << ".mean" << ends;
-    ofstream fold_out(fold_mean_filename.str().c_str());
-
     std::vector<std::string> scorer_names;
-    scorer_names.push_back("gp_last");
-    scorer_names.push_back("gp_val");
+    scorer_names.push_back("gp_best");
+    scorer_names.push_back("gp_sum");
 
-    evaluation.Sumarize(scorer_names, fold_out);
+    evaluation.Sumarize(scorer_names);
 
     // TeX-file: end of document
     tout << endl << "\\end{document}"<< endl;
     tout.close ();
 
-    cout << "\nResults are in "
-         << InfoFileName << ".dat,"
-         << InfoFileName << ".tex,"
-         << InfoFileName << ".stc." << endl;
+    cout << "\nResults are in " << InfoFileName << ".*" << endl;
 
     return 0;
 }

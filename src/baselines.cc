@@ -34,41 +34,32 @@ int main(int argc, char** argv) {
     }
     std::string dataset_filename = argv[1];
 
-    // Set up the dataset and crawling resources
-    DataArchive data_file;
-    EvaluationReport evaluation;
+    std::string info_file_name = "baselines";
+    EvaluationReport evaluation(info_file_name);
 
+    DataArchive data_file;
     data_file.Init(dataset_filename);
 
-    const int warm_up = 4; // Nuber of initial visits to get basic statistics of change
+    const int warm_up = 2; // Nuber of initial visits to get basic statistics of change
     const double resources = 0.05;
     const int num_folds = 5;
 
     SetBaselines();
 
-    std::string info_file_name = "baselines";
     for (int fold = 0; fold < num_folds; ++fold) {
 
         cout << "=============================================" << endl;
         cout << "Running fold " << fold << " out of " << num_folds << endl;
 
-        ostringstream fold_filename;
-        fold_filename << info_file_name << ".fold" << fold << ends;
-        ofstream fold_out(fold_filename.str().c_str());
-
         Dataset test_set = data_file.dataset().testCV(num_folds, fold);
 
-        evaluation.Evaluate(scorers, &test_set, resources, warm_up, fold_out);
+        evaluation.Evaluate(scorers, &test_set, resources, warm_up, fold);
 
-        fold_out.close();
-        cout << "Results written into file: " << fold_filename.str() << endl;
+
+        cout << "Results written into files: " << info_file_name << ".*" << endl;
     }
 
-    ostringstream fold_mean_filename;
-    fold_mean_filename  << info_file_name << ".mean" << ends;
-    ofstream fold_out(fold_mean_filename.str().c_str());
-
-    evaluation.Sumarize(names, fold_out);
+    evaluation.Sumarize(names);
 
     cout << "\nResults are in " << info_file_name << ".*," << endl;
 
