@@ -23,7 +23,7 @@ bool CycleComparator(const Dataset::Instance* a, const Dataset::Instance* b) {
 }
 
 void Dataset::ComputeIDCG() {
-    std::cout << "Computing IDCG..." << std::endl;
+    std::cout << "Computing IDCG... ";
     std::vector<const Instance*> data(this->instances_);
     idcg_.resize(this->NumCycles()+1);
     pages_changed.resize(this->NumCycles()+1);
@@ -46,6 +46,7 @@ void Dataset::ComputeIDCG() {
     }
 
     idcg_ready_ = true;
+    std::cout <<"done." << std::endl
 }
 
 Dataset Dataset::testCV(int num_folds, int current_fold) {
@@ -130,8 +131,8 @@ void DataArchive::ReadFile(const std::string& filename) {
 
 
             // Max values
-            if(tmp_data.size() >= 100) break;       // max instances
-            changes.resize(10);                        // max cycles
+//            if(tmp_data.size() >= 100) break;       // max instances
+//            changes.resize(20);                        // max cycles
 
             tmp_data.push_back(changes);
         }
