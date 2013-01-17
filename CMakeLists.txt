@@ -18,6 +18,10 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE DEBUG)
 endif(NOT CMAKE_BUILD_TYPE)
 
+#INCLUDE(CMakeForceCompiler)
+#CMAKE_FORCE_C_COMPILER(gcc-4.4 GNU)
+#CMAKE_FORCE_CXX_COMPILER(g++-4.4 GNU)
+
 # Flags de instalacao
 #set(CMAKE_C_FLAGS "-Wall -Werror")
 #set(CMAKE_CXX_FLAGS "-Wall -Werror")
@@ -25,10 +29,10 @@ set(CMAKE_C_FLAGS "-Wreturn-type -Wuninitialized")
 set(CMAKE_CXX_FLAGS "-Wreturn-type -Wuninitialized")
 set(CMAKE_C_FLAGS_DEBUG "-g -DGPINTERNALCHECK=1")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -DGPINTERNALCHECK=1")
-set(CMAKE_C_FLAGS_RELEASE "-Ofast -DNDEBUG -DGPINTERNALCHECK=0")
-set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -DNDEBUG -DGPINTERNALCHECK=0")
-set(CMAKE_C_FLAGS_RELEASETUNE "-Ofast -DNDEBUG -march=native -mtune=native -DGPINTERNALCHECK=0")
-set(CMAKE_CXX_FLAGS_RELEASETUNE "-Ofast -DNDEBUG -march=native -mtune=native -DGPINTERNALCHECK=0")
+set(CMAKE_C_FLAGS_RELEASE "-g -O3 -DNDEBUG -DGPINTERNALCHECK=0")
+set(CMAKE_CXX_FLAGS_RELEASE "-g -O3 -DNDEBUG -DGPINTERNALCHECK=0")
+set(CMAKE_C_FLAGS_RELEASETUNE "-g -O3 -DNDEBUG -march=native -mtune=native -DGPINTERNALCHECK=0")
+set(CMAKE_CXX_FLAGS_RELEASETUNE "-g -O3 -DNDEBUG -march=native -mtune=native -DGPINTERNALCHECK=0")
 
 ###########################################
 ##             SUBDIRETORIOS             ##
