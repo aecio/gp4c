@@ -46,7 +46,7 @@ void Dataset::ComputeIDCG() {
     }
 
     idcg_ready_ = true;
-    std::cout <<"done." << std::endl
+    std::cout <<"done." << std::endl;
 }
 
 Dataset Dataset::testCV(int num_folds, int current_fold) {
