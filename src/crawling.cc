@@ -315,8 +315,9 @@ int main(int argc, char** argv) {
     }
 
     std::vector<std::string> scorer_names;
-    scorer_names.push_back("gp_best");
-    scorer_names.push_back("gp_sum");
+    scorer_names.push_back("gp2c_best");
+    scorer_names.push_back("gp2c_sum");
+    scorer_names.push_back("gp2c_avg");
 
     evaluation.Sumarize(scorer_names);
 

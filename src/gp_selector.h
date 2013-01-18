@@ -95,7 +95,7 @@ public:
                 best_gp_sum = (MyGP*) &gp->duplicate();
             }
             if(avg_score < min_avg_score) {
-                min_avg_score = sum_score;
+                min_avg_score = avg_score;
                 best_gp_avg = (MyGP*) &gp->duplicate();
             }
 
