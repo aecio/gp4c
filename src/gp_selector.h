@@ -101,7 +101,7 @@ public:
             top_out << "evolution:" << gp->fitness_e <<
                        " validation:" << gp->fitness_v <<
                        " cycles_std_dev:" << gp->cycles_std_dev <<
-                       " fitness_std_dev: "<< gp->fitness_std_dev <<
+                       " fitness_std_dev:"<< gp->fitness_std_dev <<
                        " sum_score:" << sum_score <<
                        " avg_score:" << avg_score <<
                        " " << *gp;
