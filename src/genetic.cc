@@ -166,7 +166,8 @@ void MyGP::RunValidation() {
     for (int i = 0; i < rates->size(); ++i) {
         std_dev += pow((*rates)[i] - mean, 2);
     }
-    std_dev += sqrt(std_dev);
+
+    std_dev = sqrt(std_dev);
 
     cycles_std_dev = std_dev;
     fitness_std_dev = sqrt(pow(fitness_v-mean, 2) + pow(fitness_e-mean, 2));

@@ -444,8 +444,8 @@ public:
   GPGene* NthGene (int n) { return (GPGene*) GPContainer::Nth(n); }
 
   double getFitness () { return stdFitness; }
-  virtual int length () { return GPlength; }
-  virtual int depth () { return GPdepth; }
+  virtual int length () const { return GPlength; }
+  virtual int depth () const { return GPdepth; }
   virtual void calcLength ();
   virtual void calcDepth ();
 

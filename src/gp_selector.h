@@ -41,7 +41,9 @@ public:
                 top_gps_.push((MyGP*) &gp->duplicate());
             } else {
                 MyGP* top_gp = top_gps_.top();
-                if(gp->getFitness() < top_gp->getFitness()) {
+//                cout << "fitness=" << top_gp->getFitness()
+//                     << " lenght=" << top_gp->length() << endl;
+                if(gp->getFitness() > top_gp->getFitness()) {
                     ids_.erase(id);
                     top_gps_.pop();
                     delete top_gp;
@@ -53,10 +55,16 @@ public:
         }
     }
 
+    double SumScore(MyGP* gp) {
+        return gp->fitness_e + gp->fitness_v - gp->cycles_std_dev;
+    }
+
+    double AvgScore(MyGP* gp) {
+        return ((gp->fitness_e + gp->fitness_v)/2) - gp->cycles_std_dev;
+    }
+
     void Validate(Dataset* validation_set, ostream& top_out) {
 
-        double min_sum_score = std::numeric_limits<double>::min();
-        double min_avg_score = std::numeric_limits<double>::min();
 
         std::vector<MyGP*> gps;
         gps.reserve(top_gps_.size());
@@ -75,12 +83,20 @@ public:
         }
         tp.wait();
 
+        assert(gps.size() > 0);
 
+        best_gp_sum = (MyGP*) &gps[0]->duplicate();
+        double best_sum_score = SumScore(best_gp_sum);
+
+        best_gp_avg = (MyGP*) &gps[0]->duplicate();
+        double best_avg_score = AvgScore(best_gp_avg);
+
+        std::cout << "Num best gps: " << gps.size() << endl;
         for(int i = 0; i < gps.size(); ++i) {
             MyGP* gp = gps[i];
 
-            double sum_score = gp->fitness_e + gp->fitness_v - gp->cycles_std_dev;
-            double avg_score = ((gp->fitness_e + gp->fitness_v)/2) - gp->fitness_std_dev;
+            double sum_score = SumScore(gp);
+            double avg_score = AvgScore(gp);
 
             top_out << "evolution:" << gp->fitness_e <<
                        " validation:" << gp->fitness_v <<
@@ -89,18 +105,49 @@ public:
                        " sum_score:" << sum_score <<
                        " avg_score:" << avg_score <<
                        " " << *gp;
+//            cout << "evolution:" << gp->fitness_e <<
+//                       " validation:" << gp->fitness_v <<
+//                       " cycles_std_dev:" << gp->cycles_std_dev <<
+//                       " fitness_std_dev: "<< gp->fitness_std_dev <<
+//                       " sum_score:" << sum_score <<
+//                       " avg_score:" << avg_score << endl;
 
-            if(sum_score < min_sum_score) {
-                min_sum_score = sum_score;
+//            std::cout << "best_sum_score=" << best_sum_score
+//                      << " sum_score=" << sum_score
+//                      << std::endl;
+
+            if(sum_score > best_sum_score ||
+               (sum_score == best_sum_score && gp->length() < best_gp_sum->length()) ) {
+
+                std::cout << "best_sum_score=" << best_sum_score
+                          << " new_sum_score=" << sum_score
+                          << std::endl;
+                cout << "old:" << *best_gp_sum;
+                cout << "new:" << *gp << endl;
+
+                best_sum_score = sum_score;
+                delete best_gp_sum;
                 best_gp_sum = (MyGP*) &gp->duplicate();
             }
-            if(avg_score < min_avg_score) {
-                min_avg_score = avg_score;
+            if(avg_score > best_avg_score ||
+               (avg_score == best_avg_score && gp->length() < best_gp_avg->length())) {
+
+                std::cout << "best_avg_score: " << best_avg_score
+                          << " new_avg_score: " << avg_score
+                          << std::endl;
+                cout << "old:" << *best_gp_sum;
+                cout << "new:" << *gp << endl;
+
+                best_avg_score = avg_score;
+                delete best_gp_avg;
                 best_gp_avg = (MyGP*) &gp->duplicate();
             }
 
             delete gp;
         }
+
+        assert(best_gp_avg != NULL);
+        assert(best_gp_sum != NULL);
     }
 
     MyGP* BestGPSum() {
