@@ -27,6 +27,7 @@
 // just add them below and insert an entry in the configArray.
 GPVariables cfg;
 const char *InfoFileName="data";
+int FitnessFunction = MyGP::CHANGE_RATE;
 struct GPConfigVarInformation configArray[]=
 {
 {"PopulationSize", DATAINT, &cfg.PopulationSize},
@@ -46,7 +47,7 @@ struct GPConfigVarInformation configArray[]=
 {"SteadyState", DATAINT, &cfg.SteadyState},
 {"AddBestToNewPopulation", DATAINT, &cfg.AddBestToNewPopulation},
 {"InfoFileName", DATASTRING, &InfoFileName},
-{"", DATAINT, NULL}
+{"FitnessFunction", DATAINT, &FitnessFunction}
 };
 
 
@@ -139,6 +140,8 @@ int main(int argc, char** argv) {
     std::string dataset_filename = argv[2];
     int seed = atoi(argv[1]);
 
+
+
     // We set up a new-handler, because we might need a lot of memory,
     // and we don't know it's there.
     set_new_handler(newHandler);
@@ -185,6 +188,22 @@ int main(int argc, char** argv) {
     fout << adfNs << endl;
 
     cout << "Seed value: " << seed << endl;
+
+    cout << "Fitness function: ";
+    switch(FitnessFunction) {
+    case MyGP::CHANGE_RATE:
+        MyGP::fitness_function = MyGP::CHANGE_RATE;
+        cout << "ChangeRate" << endl;
+        break;
+    case MyGP::NDCG:
+        MyGP::fitness_function = MyGP::NDCG;
+        cout << "NDCG" << endl;
+        break;
+    default:
+        std::cerr << "Invalid fitness function." << std::endl;
+        exit(1);
+    }
+
     cout << endl;
 
     cout << "=============================================" << endl;
@@ -267,24 +286,30 @@ int main(int argc, char** argv) {
         bests_filename  << InfoFileName << ".bests" << fold << ends;
         ofstream bests_file(bests_filename.str().c_str());
 
-        MyGP* best_gp = selector.SelectGP(&validation_set, bests_file);
+        selector.Validate(&validation_set, bests_file);
+
+        MyGP* gp_sum = selector.BestGPSum();
+        MyGP* gp_avg = selector.BestGPAvg();
 
         cout << endl;
-        cout << "Best GP of the last generation:" << endl;
+        cout << "Best GP:" << endl;
         cout << *pop->NthGP(pop->bestOfPopulation) << endl;
 
-        cout << "Best GP using validation method:" << endl;
-        cout << *best_gp << endl;
+        cout << "Best GP - sum validation:" << endl;
+        cout << *gp_sum << endl;
 
-        cout << "------------------ Test Phase -----------------" << endl;
+        cout << "Best GP - avg validation:" << endl;
+        cout << *gp_avg << endl;
 
-        cout << "Testing best individual and baselines..." << endl;
-        GPScorer gp_last((MyGP*)pop->NthGP(pop->bestOfPopulation), "gp_best");
-        GPScorer gp_val(best_gp,"gp_sum");
+        cout << "Testing best individuals..." << endl;
+        GPScorer gp_best_scorer((MyGP*)pop->NthGP(pop->bestOfPopulation), "gp2c_best");
+        GPScorer gp_sum_scorer(gp_sum,"gp2c_sum");
+        GPScorer gp_avg_scorer(gp_avg, "gp2c_avg");
 
         std::vector<Scorer*> scorers;
-        scorers.push_back(&gp_last);
-        scorers.push_back(&gp_val);
+        scorers.push_back(&gp_best_scorer);
+        scorers.push_back(&gp_sum_scorer);
+        scorers.push_back(&gp_avg_scorer);
 
         evaluation.Evaluate(scorers, &test_set, resources, warm_up, fold);
     }

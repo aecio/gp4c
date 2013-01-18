@@ -12,16 +12,16 @@ public:
 
     void Run(Scorer* scorer, Dataset* dataset, double resources, int warm_up);
 
-    double AverageErrorRate() {
-        return VectorAverage(error_rate);
+    double AverageChangeRate() {
+        return VectorAverage(change_rate_);
     }
 
     double AverageNDCG() {
         return VectorAverage(ndcg_);
     }
 
-    const std::vector<double>& ErrorRates() {
-        return error_rate;
+    const std::vector<double>& ChangeRates() {
+        return change_rate_;
     }
 
     const std::vector<double>& NDCGs() {
@@ -41,7 +41,7 @@ private:
         return sum / vec.size();
     }
 
-    std::vector<double> error_rate;
+    std::vector<double> change_rate_;
     std::vector<double> ndcg_;
 };
 

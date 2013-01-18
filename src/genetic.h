@@ -42,6 +42,9 @@ public:
 
 class MyGP : public GP {
 public:
+
+    enum Fitness {CHANGE_RATE = 1, NDCG = 2};
+
     class Comparator {
     public:
         bool operator() (const MyGP* lhs, const MyGP* rhs) const {
@@ -97,6 +100,8 @@ public:
     double fitness_v;
     double cycles_std_dev;
     double fitness_std_dev;
+
+    static int fitness_function;
 
 private:
     Dataset* evolution_set_;

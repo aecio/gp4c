@@ -16,12 +16,18 @@ typedef std::priority_queue<MyGP*, vector<MyGP*>, MyGP::Comparator> MyGPQueue;
 class GPSelector {
 public:
 
-    GPSelector(int max_size): max_size_(max_size), best_gp_(NULL) { }
+    GPSelector(int max_size):
+        max_size_(max_size), best_gp_sum(NULL), best_gp_avg(NULL) { }
 
     ~GPSelector() {
-        if(best_gp_) {
-            delete best_gp_;
-            best_gp_ = NULL;
+        if(best_gp_sum) {
+            delete best_gp_sum;
+            best_gp_sum = NULL;
+        }
+
+        if(best_gp_avg) {
+            delete best_gp_avg;
+            best_gp_avg = NULL;
         }
     }
 
@@ -47,10 +53,10 @@ public:
         }
     }
 
-    MyGP* SelectGP(Dataset* validation_set, ostream& top_out) {
+    void Validate(Dataset* validation_set, ostream& top_out) {
 
-        best_gp_ = NULL;
-        double min_score = std::numeric_limits<double>::max();
+        double min_sum_score = std::numeric_limits<double>::min();
+        double min_avg_score = std::numeric_limits<double>::min();
 
         std::vector<MyGP*> gps;
         gps.reserve(top_gps_.size());
@@ -70,40 +76,47 @@ public:
         tp.wait();
 
 
-
-        for(int i =0; i < gps.size(); ++i) {
-//        while(!top_gps_.empty()) {
-
+        for(int i = 0; i < gps.size(); ++i) {
             MyGP* gp = gps[i];
 
-//            gp->RunValidation(validation_set);
-
-            double score = gp->fitness_e + gp->fitness_v + gp->cycles_std_dev;
-//            double score = gp->fitness_e + gp->fitness_v + gp->fitness_std_dev;
+            double sum_score = gp->fitness_e + gp->fitness_v - gp->cycles_std_dev;
+            double avg_score = ((gp->fitness_e + gp->fitness_v)/2) - gp->fitness_std_dev;
 
             top_out << "evolution:" << gp->fitness_e <<
                        " validation:" << gp->fitness_v <<
                        " cycles_std_dev:" << gp->cycles_std_dev <<
                        " fitness_std_dev: "<< gp->fitness_std_dev <<
-                       " score:" << score <<
+                       " sum_score:" << sum_score <<
+                       " avg_score:" << avg_score <<
                        " " << *gp;
 
-            if(score < min_score) {
-                min_score = score;
-                best_gp_ = (MyGP*) &gp->duplicate();
+            if(sum_score < min_sum_score) {
+                min_sum_score = sum_score;
+                best_gp_sum = (MyGP*) &gp->duplicate();
+            }
+            if(avg_score < min_avg_score) {
+                min_avg_score = sum_score;
+                best_gp_avg = (MyGP*) &gp->duplicate();
             }
 
             delete gp;
         }
+    }
 
-        return best_gp_;
+    MyGP* BestGPSum() {
+        return best_gp_sum;
+    }
+
+    MyGP* BestGPAvg() {
+        return best_gp_avg;
     }
 
 private:
     MyGPQueue top_gps_;
     std::set<std::string> ids_;
     int max_size_;
-    MyGP* best_gp_;
+    MyGP* best_gp_sum;
+    MyGP* best_gp_avg;
 };
 
 #endif // BEST_GP_H

@@ -91,6 +91,8 @@ double MyGene::evaluate(URL& url, int cycle) {
 /*========================== MyGP ==========================
   ----------------------------------------------------------*/
 
+int MyGP::fitness_function = MyGP::CHANGE_RATE;
+
 // Print a GP. If we want a LaTeX-output, we must provide for the
 // equation environment.
 void MyGP::printTeXStyle(ostream& os) {
@@ -119,10 +121,10 @@ void MyGP::RunValidation() {
     GPScorer scorer(this);
     sim_validation.Run(&scorer, validation_set_, resources_, warm_up_);
 
-    if(sim_validation.ErrorRates().size() == 0) {
+    if(sim_validation.ChangeRates().size() == 0) {
         GPExitSystem("MyGP::Validate", "Error rates of validation is empty.");
     }
-    if(sim_evolution_.ErrorRates().size() == 0) {
+    if(sim_evolution_.ChangeRates().size() == 0) {
         GPExitSystem("MyGP::Validate", "Error rates of evolutino is empty.");
     }
 
@@ -132,7 +134,7 @@ void MyGP::RunValidation() {
     const std::vector<double>* rates;
 
     // Calc mean for validation
-    rates = &sim_validation.ErrorRates();
+    rates = &sim_validation.ChangeRates();
     for (int i = 0; i < rates->size(); ++i) {
         sum_v += (*rates)[i];
     }
@@ -142,7 +144,7 @@ void MyGP::RunValidation() {
 
     // Calc mean for evolution
     double sum_e = 0.0;
-    rates = &sim_evolution_.ErrorRates();
+    rates = &sim_evolution_.ChangeRates();
     for (int i = 0; i < rates->size(); ++i) {
         sum_e += (*rates)[i];
     }
@@ -154,13 +156,13 @@ void MyGP::RunValidation() {
     // Calc std deviation for validation
     double mean = (sum_e + sum_v) / total_rates;
     double std_dev = 0.0;
-    rates = &sim_validation.ErrorRates();
+    rates = &sim_validation.ChangeRates();
     for (int i = 0; i < rates->size(); ++i) {
         std_dev += pow((*rates)[i] - mean, 2);
     }
 
     // Calc std deviation for evolution
-    rates = &sim_evolution_.ErrorRates();
+    rates = &sim_evolution_.ChangeRates();
     for (int i = 0; i < rates->size(); ++i) {
         std_dev += pow((*rates)[i] - mean, 2);
     }
@@ -175,5 +177,8 @@ void MyGP::RunValidation() {
 void MyGP::evaluate() {
     GPScorer scorer(this);
     sim_evolution_.Run(&scorer, evolution_set_, resources_, warm_up_);
-    stdFitness = sim_evolution_.AverageErrorRate();
+    if(fitness_function == CHANGE_RATE)
+        stdFitness = sim_evolution_.AverageChangeRate();
+    else
+        stdFitness = sim_evolution_.AverageNDCG();
 }

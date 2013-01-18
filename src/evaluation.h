@@ -51,7 +51,7 @@ public:
         ndcg_out << endl;
         for(int i = 0; i < dataset->NumCycles()-warm_up; ++i) {
             for (int j = 0; j < scorers_.size(); ++j) {
-                crate_out << simulators[j].ErrorRates()[i] << ";";
+                crate_out << simulators[j].ChangeRates()[i] << ";";
                 ndcg_out << simulators[j].NDCGs()[i] << ";";
             }
             crate_out << endl;
@@ -66,7 +66,7 @@ public:
         crate_out << endl;
         ndcg_out << endl;
         for (int j = 0; j < scorers_.size(); ++j) {
-            crate_out << simulators[j].AverageErrorRate() << ";";
+            crate_out << simulators[j].AverageChangeRate() << ";";
             ndcg_out << simulators[j].AverageNDCG() << ";";
         }
         crate_out << endl;
@@ -106,7 +106,7 @@ public:
         std::vector< std::vector<double> > means;
         means.resize(scorers_.size());
 
-        int n_cycles = results_[0][0].ErrorRates().size();
+        int n_cycles = results_[0][0].ChangeRates().size();
         for (int cycle = 0; cycle < n_cycles; ++cycle) {
             int n_scorers = results_[0].size();
             for (int scorer = 0; scorer < n_scorers; ++scorer) {
@@ -115,7 +115,7 @@ public:
 
                 sum = 0.0;
                 for (int fold = 0; fold < results_.size(); ++fold) {
-                    sum += results_[fold][scorer].ErrorRates()[cycle];
+                    sum += results_[fold][scorer].ChangeRates()[cycle];
                 }
                 mean = sum / results_.size();
                 crate_out << mean << ";";
@@ -152,7 +152,7 @@ public:
 
             sum = 0.0;
             for (int fold = 0; fold < results_.size(); ++fold) {
-                sum += results_[fold][scorer].AverageErrorRate();
+                sum += results_[fold][scorer].AverageChangeRate();
             }
             mean = sum / results_.size();
             crate_out << mean << ";";

@@ -9,8 +9,8 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
 
     int k = dataset->NumInstances()*resources;
 
-    error_rate.clear();
-    error_rate.reserve(dataset->NumCycles());
+    change_rate_.clear();
+    change_rate_.reserve(dataset->NumCycles());
 
     std::vector<URL*> repository(dataset->NumInstances());
     for (int i = 0; i < dataset->NumInstances(); ++i) {
@@ -35,10 +35,11 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
 //        std::partial_sort(repository.begin(), repository.begin()+k,
 //                          repository.end(), URL::ComparePtr);
         std::sort(repository.begin(), repository.end(), URL::ComparePtr);
-        double errors = 0;
+        double changes = 0;
         double dcg = 0;
         for (int i = 0; i < k; ++i) {
             if( dataset->instance(repository[i]->id)->ChangedIn(cycle) ) {
+                changes++;
                 repository[i]->Update(cycle, true);
                 if (i == 0) {
                     // same as: pow(2, relevance=1) - 1;
@@ -49,7 +50,6 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
                 }
             } else {
                 repository[i]->Update(cycle, false);
-                errors++;
                 // dcg += 0
             }
 //            std::cout << "URL["<<i<<"] cycle="<< cycle << endl;
@@ -72,7 +72,7 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
         } else {
             ndcg = dcg / dataset->IDCG(cycle);
         }
-        error_rate.push_back(errors/k);
+        change_rate_.push_back(changes/k);
         ndcg_.push_back(ndcg);
 //        std::cout << "cycle=" << cycle << " NDCG=" << ndcg << endl;
     }
