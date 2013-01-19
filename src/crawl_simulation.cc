@@ -11,10 +11,12 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
 
     change_rate_.clear();
     change_rate_.reserve(dataset->NumCycles());
+    ndcg_.reserve(dataset->NumCycles());
 
+    URL* data = new URL[dataset->NumInstances()];
     std::vector<URL*> repository(dataset->NumInstances());
     for (int i = 0; i < dataset->NumInstances(); ++i) {
-        repository[i] = new URL();
+        repository[i] = &data[i];
         repository[i]->id = i;
     }
 
@@ -78,7 +80,8 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
     }
 //    std::cout << "AverageNDCG=" << AverageNDCG() << endl;
 
-    for (int i = 0; i < dataset->NumInstances(); ++i) {
-        delete repository[i];
-    }
+//    for (int i = 0; i < dataset->NumInstances(); ++i) {
+//        delete repository[i];
+//    }
+    delete[] data;
 }
