@@ -215,7 +215,7 @@ int main(int argc, char** argv) {
     const int warm_up = 2; // Nuber of initial visits to get basic statistics of change
     const double resources = 0.05;
     const int num_folds = 5;
-    const int max_top_gps = cfg.NumberOfGenerations * 3;
+    const int max_top_gps = 50;
     EvaluationReport evaluation(InfoFileName);
 
 
