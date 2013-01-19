@@ -43,7 +43,8 @@ public:
                 MyGP* top_gp = top_gps_.top();
 //                cout << "fitness=" << top_gp->getFitness()
 //                     << " lenght=" << top_gp->length() << endl;
-                if(gp->getFitness() > top_gp->getFitness()) {
+                if(gp->getFitness() < top_gp->getFitness()) {
+//                    cout << "new gp fitness=" << gp->getFitness() << endl;
                     ids_.erase(id);
                     top_gps_.pop();
                     delete top_gp;

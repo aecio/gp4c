@@ -151,7 +151,7 @@ void MyGP::RunValidation() {
     fitness_e = sum_e / rates->size();
     total_rates += rates->size();
 
-    assert(fitness_e == stdFitness);
+//    assert(fitness_e == stdFitness);
 
     // Calc std deviation for validation
     double mean = (sum_e + sum_v) / total_rates;
@@ -179,7 +179,7 @@ void MyGP::evaluate() {
     GPScorer scorer(this);
     sim_evolution_.Run(&scorer, evolution_set_, resources_, warm_up_);
     if(fitness_function == CHANGE_RATE)
-        stdFitness = sim_evolution_.AverageChangeRate();
+        stdFitness = 1 - sim_evolution_.AverageChangeRate();
     else
-        stdFitness = sim_evolution_.AverageNDCG();
+        stdFitness = 1 - sim_evolution_.AverageNDCG();
 }

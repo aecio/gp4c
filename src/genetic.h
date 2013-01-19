@@ -48,7 +48,7 @@ public:
     class Comparator {
     public:
         bool operator() (const MyGP* lhs, const MyGP* rhs) const {
-            if(lhs->stdFitness > rhs->stdFitness)
+            if(lhs->stdFitness < rhs->stdFitness)
                 return true;
             else if(lhs->stdFitness == rhs->stdFitness &&
                     lhs->length() < rhs->length() )
