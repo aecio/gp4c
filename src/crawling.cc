@@ -21,13 +21,18 @@
 #include "url.h"
 #include "evaluation.h"
 
-
 // Define configuration parameters and the neccessary array to
 // read/write the configuration to a file. If you need more variables,
 // just add them below and insert an entry in the configArray.
+
+const char *InfoFileName="result";
+int FitnessFunction = MyGP::CHANGE_RATE; // Fitness used in training
+int InitialVisits = 2;   // Number of initial visits to get basic statistics of change
+double Resources = 0.05; // Percent of resources used in the simulation
+int NumberOfFolds = 5;   // Number of cross validation folds
+int MaxTopGPs = 50;      // Number of GPs maintained for validation
+
 GPVariables cfg;
-const char *InfoFileName="data";
-int FitnessFunction = MyGP::CHANGE_RATE;
 struct GPConfigVarInformation configArray[]=
 {
 {"PopulationSize", DATAINT, &cfg.PopulationSize},
@@ -47,7 +52,11 @@ struct GPConfigVarInformation configArray[]=
 {"SteadyState", DATAINT, &cfg.SteadyState},
 {"AddBestToNewPopulation", DATAINT, &cfg.AddBestToNewPopulation},
 {"InfoFileName", DATASTRING, &InfoFileName},
-{"FitnessFunction", DATAINT, &FitnessFunction}
+{"FitnessFunction", DATAINT, &FitnessFunction},
+{"InitialVisits", DATAINT, &InitialVisits},
+{"Resources", DATADOUBLE, &Resources},
+{"NumberOfFolds", DATAINT, &NumberOfFolds},
+{"MaxTopGPs", DATAINT, &MaxTopGPs}
 };
 
 
@@ -140,8 +149,6 @@ int main(int argc, char** argv) {
     std::string dataset_filename = argv[2];
     int seed = atoi(argv[1]);
 
-
-
     // We set up a new-handler, because we might need a lot of memory,
     // and we don't know it's there.
     set_new_handler(newHandler);
@@ -180,16 +187,8 @@ int main(int argc, char** argv) {
     fout << cfg << endl;
     tout << "\\begin{verbatim}\n" << cfg << "\\end{verbatim}\n" << endl;
 
-    // Create the adf function/terminal set and print it out.
-    GPAdfNodeSet adfNs;
-    createNodeSet(adfNs);
+    cout << "Fitness function          = ";
 
-    cout << adfNs << endl;
-    fout << adfNs << endl;
-
-    cout << "Seed value: " << seed << endl;
-
-    cout << "Fitness function: ";
     switch(FitnessFunction) {
     case MyGP::CHANGE_RATE:
         MyGP::fitness_function = MyGP::CHANGE_RATE;
@@ -203,8 +202,19 @@ int main(int argc, char** argv) {
         std::cerr << "Invalid fitness function." << std::endl;
         exit(1);
     }
-
+    cout << "Initial visits            = " << InitialVisits << endl;
+    cout << "Resources                 = " << Resources << endl;
+    cout << "Number of folds           = " << NumberOfFolds << endl;
+    cout << "Max top GPs               = " << MaxTopGPs << endl;
+    cout << "Seed value                = " << seed << endl;
     cout << endl;
+
+    // Create the adf function/terminal set and print it out.
+    GPAdfNodeSet adfNs;
+    createNodeSet(adfNs);
+
+    cout << adfNs << endl;
+    fout << adfNs << endl;
 
     cout << "=============================================" << endl;
 
@@ -212,33 +222,29 @@ int main(int argc, char** argv) {
     DataArchive data_file;
     data_file.Init(dataset_filename);
 
-    const int warm_up = 2; // Nuber of initial visits to get basic statistics of change
-    const double resources = 0.05;
-    const int num_folds = 5;
-    const int max_top_gps = 50;
     EvaluationReport evaluation(InfoFileName);
 
 
-    for (int fold = 0; fold < num_folds; ++fold) {
+    for (int fold = 0; fold < NumberOfFolds; ++fold) {
 
         cout << "=============================================" << endl;
-        cout << "Running fold " << fold << " out of " << num_folds << endl;
-        fout << "Fold "<< fold << " of " << num_folds << endl << endl;
-        tout << "\\section{Fold "<<fold<<" of "<<num_folds<<"}\n" << endl;
+        cout << "Running fold " << fold << " out of " << NumberOfFolds << endl;
+        fout << "Fold "<< fold << " of " << NumberOfFolds << endl << endl;
+        tout << "\\section{Fold "<<fold<<" of "<<NumberOfFolds<<"}\n" << endl;
 
 
-        Dataset test_set = data_file.dataset().testCV(num_folds, fold);
-        Dataset train_set = data_file.dataset().trainCV(num_folds, fold);
+        Dataset test_set = data_file.dataset().testCV(NumberOfFolds, fold);
+        Dataset train_set = data_file.dataset().trainCV(NumberOfFolds, fold);
 
         Dataset evolution_set  = train_set.trainCV(2, 0);
         Dataset validation_set = train_set.testCV(2, 0);
 
-        GPSelector selector(max_top_gps);
+        GPSelector selector(MaxTopGPs);
 
         // Create a population with this configuration
         cout << "Creating initial population ..." << endl;
         MyPopulation* pop = new MyPopulation(cfg, adfNs, &evolution_set,
-                                             resources, warm_up);
+                                             Resources, InitialVisits);
         pop->create();
         cout << "Ok." << endl;
         pop->createGenerationReport(1, 0, fout, bout);
@@ -257,7 +263,7 @@ int main(int argc, char** argv) {
             // genetic operators
             if (!cfg.SteadyState) {
                 newPop = new MyPopulation(cfg, adfNs, &evolution_set,
-                                          resources, warm_up);
+                                          Resources, InitialVisits);
             }
             pop->generate(*newPop);
 
@@ -311,7 +317,7 @@ int main(int argc, char** argv) {
         scorers.push_back(&gp_sum_scorer);
         scorers.push_back(&gp_avg_scorer);
 
-        evaluation.Evaluate(scorers, &test_set, resources, warm_up, fold);
+        evaluation.Evaluate(scorers, &test_set, Resources, InitialVisits, fold);
     }
 
     std::vector<std::string> scorer_names;

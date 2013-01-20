@@ -3,9 +3,44 @@
 #include <vector>
 #include <fstream>
 
+#include "gpconfig.h"
 #include "dataset.h"
 #include "scorer.h"
 #include "evaluation.h"
+
+const char *InfoFileName="result";
+int FitnessFunction = MyGP::CHANGE_RATE; // Fitness used in training
+int InitialVisits = 2;   // Number of initial visits to get basic statistics of change
+double Resources = 0.05; // Percent of resources used in the simulation
+int NumberOfFolds = 5;   // Number of cross validation folds
+int MaxTopGPs = 50;      // Number of GPs maintained for validation
+
+GPVariables cfg;
+struct GPConfigVarInformation configArray[]=
+{
+{"PopulationSize", DATAINT, &cfg.PopulationSize},
+{"NumberOfGenerations", DATAINT, &cfg.NumberOfGenerations},
+{"CreationType", DATAINT, &cfg.CreationType},
+{"CrossoverProbability", DATADOUBLE, &cfg.CrossoverProbability},
+{"CreationProbability", DATADOUBLE, &cfg.CreationProbability},
+{"MaximumDepthForCreation", DATAINT, &cfg.MaximumDepthForCreation},
+{"MaximumDepthForCrossover", DATAINT, &cfg.MaximumDepthForCrossover},
+{"SelectionType", DATAINT, &cfg.SelectionType},
+{"TournamentSize", DATAINT, &cfg.TournamentSize},
+{"DemeticGrouping", DATAINT, &cfg.DemeticGrouping},
+{"DemeSize", DATAINT, &cfg.DemeSize},
+{"DemeticMigProbability", DATADOUBLE, &cfg.DemeticMigProbability},
+{"SwapMutationProbability", DATADOUBLE, &cfg.SwapMutationProbability},
+{"ShrinkMutationProbability", DATADOUBLE, &cfg.ShrinkMutationProbability},
+{"SteadyState", DATAINT, &cfg.SteadyState},
+{"AddBestToNewPopulation", DATAINT, &cfg.AddBestToNewPopulation},
+{"InfoFileName", DATASTRING, &InfoFileName},
+{"FitnessFunction", DATAINT, &FitnessFunction},
+{"InitialVisits", DATAINT, &InitialVisits},
+{"Resources", DATADOUBLE, &Resources},
+{"NumberOfFolds", DATAINT, &NumberOfFolds},
+{"MaxTopGPs", DATAINT, &MaxTopGPs}
+};
 
 std::vector<std::string> names;
 std::vector<Scorer*> scorers;
@@ -33,6 +68,7 @@ int main(int argc, char** argv) {
         exit(1);
     }
     std::string dataset_filename = argv[1];
+    GPConfiguration config(cout, "crawling.ini", configArray);
 
     std::string info_file_name = "baselines";
     EvaluationReport evaluation(info_file_name);
@@ -40,20 +76,16 @@ int main(int argc, char** argv) {
     DataArchive data_file;
     data_file.Init(dataset_filename);
 
-    const int warm_up = 2; // Nuber of initial visits to get basic statistics of change
-    const double resources = 0.05;
-    const int num_folds = 5;
-
     SetBaselines();
 
-    for (int fold = 0; fold < num_folds; ++fold) {
+    for (int fold = 0; fold < NumberOfFolds; ++fold) {
 
-        cout << "=============================================" << endl;
-        cout << "Running fold " << fold << " out of " << num_folds << endl;
+        cout << "=======================================" << endl;
+        cout << "Running fold " << fold << " out of " << NumberOfFolds << endl;
+        cout << "---------------------------------------" << endl;
+        Dataset test_set = data_file.dataset().testCV(NumberOfFolds, fold);
 
-        Dataset test_set = data_file.dataset().testCV(num_folds, fold);
-
-        evaluation.Evaluate(scorers, &test_set, resources, warm_up, fold);
+        evaluation.Evaluate(scorers, &test_set, Resources, InitialVisits, fold);
 
 
         cout << "Results written into files: " << info_file_name << ".*" << endl;

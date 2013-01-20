@@ -101,7 +101,7 @@ void Dataset::CopyInstances(int from, Dataset& dest, int num) {
 }
 
 void DataArchive::Init(const std::string& filename) {
-    std::cout << "Loading UCLA WebArchive dataset..." << std::endl;
+    std::cout << "Loading data archive..." << std::endl;
     ReadFile(filename);
     dataset_.ComputeIDCG();
     std::cout << "Loaded " << dataset_.NumInstances()
