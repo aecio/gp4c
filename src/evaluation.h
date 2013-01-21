@@ -111,13 +111,16 @@ public:
         // Print results of each cycle
         for (int j = 0; j < scorers_.size(); ++j) {
             crate_out << scorers_[j]->Name() << ";";
+            ndcg_out << scorers_[j]->Name() << ";";
             ncg_out << scorers_[j]->Name() << ";";
         }
         for (int i = 0; i < names.size(); ++i) {
             crate_out << names[i] << ";";
+            ndcg_out << names[i] << ";";
             ncg_out << names[i] << ";";
         }
         crate_out << endl;
+        ndcg_out << endl;
         ncg_out << endl;
 
         std::vector< std::vector<double> > means;
