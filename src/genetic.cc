@@ -178,8 +178,15 @@ void MyGP::RunValidation() {
 void MyGP::evaluate() {
     GPScorer scorer(this);
     sim_evolution_.Run(&scorer, evolution_set_, resources_, warm_up_);
-    if(fitness_function == CHANGE_RATE)
-        stdFitness = 1 - sim_evolution_.AverageChangeRate();
-    else
-        stdFitness = 1 - sim_evolution_.AverageNDCG();
+    switch(fitness_function) {
+        case CHANGE_RATE:
+            stdFitness = 1 - sim_evolution_.AverageChangeRate();
+            break;
+        case NDCG:
+            stdFitness = 1 - sim_evolution_.AverageNDCG();
+            break;
+        case NCG:
+            stdFitness = 1 - sim_evolution_.AverageNCG();
+            break;
+    }
 }

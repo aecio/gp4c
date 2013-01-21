@@ -198,6 +198,10 @@ int main(int argc, char** argv) {
         MyGP::fitness_function = MyGP::NDCG;
         cout << "NDCG" << endl;
         break;
+    case MyGP::NCG:
+        MyGP::fitness_function = MyGP::NCG;
+        cout << "NCG" << endl;
+        break;
     default:
         std::cerr << "Invalid fitness function." << std::endl;
         exit(1);

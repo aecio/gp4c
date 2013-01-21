@@ -43,7 +43,7 @@ public:
 class MyGP : public GP {
 public:
 
-    enum Fitness {CHANGE_RATE = 1, NDCG = 2};
+    enum Fitness {CHANGE_RATE = 1, NDCG = 2, NCG = 3};
 
     class Comparator {
     public:

@@ -26,14 +26,14 @@ void Dataset::ComputeIDCG() {
     std::cout << "Computing IDCG... ";
     std::vector<const Instance*> data(this->instances_);
     idcg_.resize(this->NumCycles()+1);
-    pages_changed.resize(this->NumCycles()+1);
+    pages_changed_.resize(this->NumCycles()+1);
     for(int cycle = 1; cycle <= this->NumCycles(); cycle++) {
         comparator_cycle = cycle;
         std::sort(data.begin(), data.end(), CycleComparator);
         idcg_[cycle] = 0;
 
         for (int i = 1; i <= data.size() && data[i-1]->ChangedIn(cycle); ++i) {
-            pages_changed[cycle]++;
+            pages_changed_[cycle]++;
             if (i == 1) {
                 idcg_[cycle] = pow(2, data[i-1]->ChangedIn(cycle)) - 1;
             } else {

@@ -20,12 +20,20 @@ public:
         return VectorAverage(ndcg_);
     }
 
+    double AverageNCG() {
+        return VectorAverage(ncg_);
+    }
+
     const std::vector<double>& ChangeRates() {
         return change_rate_;
     }
 
     const std::vector<double>& NDCGs() {
         return ndcg_;
+    }
+
+    const std::vector<double>& NCGs() {
+        return ncg_;
     }
 
 private:
@@ -43,6 +51,7 @@ private:
 
     std::vector<double> change_rate_;
     std::vector<double> ndcg_;
+    std::vector<double> ncg_;
 };
 
 

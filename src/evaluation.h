@@ -26,6 +26,10 @@ public:
         ndcg_filename << info_file_name_ << ".ndcg.fold" << fold << ends;
         ofstream ndcg_out(ndcg_filename.str().c_str());
 
+        ostringstream ncg_filename;
+        ncg_filename << info_file_name_ << ".ncg.fold" << fold << ends;
+        ofstream ncg_out(ncg_filename.str().c_str());
+
         int current_fold = results_.size();
         results_.resize(current_fold+1);
 
@@ -46,31 +50,39 @@ public:
         for (int j = 0; j < scorers_.size(); ++j) {
             crate_out << scorers_[j]->Name() << ";";
             ndcg_out << scorers_[j]->Name() << ";";
+            ncg_out << scorers_[j]->Name() << ";";
         }
         crate_out << endl;
         ndcg_out << endl;
+        ncg_out << endl;
         for(int i = 0; i < dataset->NumCycles()-warm_up; ++i) {
             for (int j = 0; j < scorers_.size(); ++j) {
                 crate_out << simulators[j].ChangeRates()[i] << ";";
                 ndcg_out << simulators[j].NDCGs()[i] << ";";
+                ncg_out << simulators[j].NDCGs()[i] << ";";
             }
             crate_out << endl;
             ndcg_out << endl;
+            ncg_out << endl;
         }
 
         // Print mean change ratio
         for (int j = 0; j < scorers_.size(); ++j) {
             crate_out << scorers_[j]->Name() << ";";
             ndcg_out << scorers_[j]->Name() << ";";
+            ncg_out << scorers_[j]->Name() << ";";
         }
         crate_out << endl;
         ndcg_out << endl;
+        ncg_out << endl;
         for (int j = 0; j < scorers_.size(); ++j) {
             crate_out << simulators[j].AverageChangeRate() << ";";
             ndcg_out << simulators[j].AverageNDCG() << ";";
+            ncg_out << simulators[j].AverageNCG() << ";";
         }
         crate_out << endl;
         ndcg_out << endl;
+        ncg_out << endl;
 
         // Remove GP scorers of this fold
         for (int i = 0; i < gp_scorers.size(); ++i) {
@@ -79,6 +91,7 @@ public:
 
         crate_out.close();
         ndcg_out.close();
+        ncg_out.close();
     }
 
     void Sumarize(std::vector<std::string>& names) {
@@ -91,17 +104,21 @@ public:
         ndcg_filename << info_file_name_ << ".ndcg.mean" << ends;
         ofstream ndcg_out(ndcg_filename.str().c_str());
 
+        ostringstream ncg_filename;
+        ncg_filename << info_file_name_ << ".ncg.mean" << ends;
+        ofstream ncg_out(ncg_filename.str().c_str());
+
         // Print results of each cycle
         for (int j = 0; j < scorers_.size(); ++j) {
             crate_out << scorers_[j]->Name() << ";";
-            ndcg_out << scorers_[j]->Name() << ";";
+            ncg_out << scorers_[j]->Name() << ";";
         }
         for (int i = 0; i < names.size(); ++i) {
             crate_out << names[i] << ";";
-            ndcg_out << names[i] << ";";
+            ncg_out << names[i] << ";";
         }
         crate_out << endl;
-        ndcg_out << endl;
+        ncg_out << endl;
 
         std::vector< std::vector<double> > means;
         means.resize(scorers_.size());
@@ -125,24 +142,34 @@ public:
                     sum += results_[fold][scorer].NDCGs()[cycle];
                 }
                 mean = sum / results_.size();
-
                 ndcg_out << mean << ";";
+
+                sum = 0.0;
+                for (int fold = 0; fold < results_.size(); ++fold) {
+                    sum += results_[fold][scorer].NCGs()[cycle];
+                }
+                mean = sum / results_.size();
+                ncg_out << mean << ";";
             }
             crate_out << endl;
             ndcg_out << endl;
+            ncg_out << endl;
         }
 
         // Print results of each cycle
         for (int j = 0; j < scorers_.size(); ++j) {
             crate_out << scorers_[j]->Name() << ";";
             ndcg_out << scorers_[j]->Name() << ";";
+            ncg_out << scorers_[j]->Name() << ";";
         }
         for (int i = 0; i < names.size(); ++i) {
             crate_out << names[i] << ";";
             ndcg_out << names[i] << ";";
+            ncg_out << names[i] << ";";
         }
         crate_out << endl;
         ndcg_out << endl;
+        ncg_out << endl;
 
 
         int n_scorers = results_[0].size();
@@ -163,14 +190,23 @@ public:
                 sum += results_[fold][scorer].AverageNDCG();
             }
             mean = sum / results_.size();
-
             ndcg_out << mean << ";";
+
+
+            sum = 0.0;
+            for (int fold = 0; fold < results_.size(); ++fold) {
+                sum += results_[fold][scorer].AverageNCG();
+            }
+            mean = sum / results_.size();
+            ncg_out << mean << ";";
         }
         crate_out << endl;
         ndcg_out << endl;
+        ncg_out << endl;
 
         crate_out.close();
         ndcg_out.close();
+        ncg_out.close();
     }
 
 private:

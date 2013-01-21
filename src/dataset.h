@@ -37,6 +37,10 @@ public:
     void ComputeIDCG();
     double IDCG(int cycle);
 
+    int PagesChanged(int cycle) {
+        return pages_changed_[cycle];
+    }
+
     int NumInstances() const {
         return instances_.size();
     }
@@ -62,7 +66,7 @@ private:
     void CopyInstances(int from, Dataset& dest, int num);
     std::vector<const Instance*> instances_;
     std::vector<double> idcg_;
-    std::vector<int> pages_changed;
+    std::vector<int> pages_changed_;
     bool idcg_ready_;
 };
 
