@@ -40,7 +40,8 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
         std::sort(repository.begin(), repository.end(), URL::ComparePtr);
         int changes = 0;
         double dcg = 0;
-        for (int i = 0; i < k; ++i) {
+        int i = 0;
+        for (; i < k; ++i) {
             if( dataset->instance(repository[i]->id)->ChangedIn(cycle) ) {
                 ++changes;
                 repository[i]->Update(cycle, true);
@@ -62,21 +63,28 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
 //            std::cout << "gad=" << repository[i]->GetGADChangeRate(cycle) << endl;
 //            std::cout << "cho=" << repository[i]->GetChoChangeRate() << endl;
         }
+        change_rate_.push_back(changes/ ((double) k));
+
+        // Compute remaining cg values until number of changed pages
+        for(; i < dataset->PagesChanged(cycle); ++i) {
+            ++changes;
+        }
+        ncg_.push_back(changes / ((double) dataset->PagesChanged(cycle)) );
+
         // Compute remaining dcg values
-        for(int i = k; i < repository.size(); ++i) {
+        for(; i < repository.size(); ++i) {
             if( dataset->instance(repository[i]->id)->ChangedIn(cycle) ) {
                 // same as: pow(2, relevance=1) - 1) / (log(i + 1)
                 dcg += 1 / (log((i+1) + 1));
             }
         }
+
         double ndcg;
         if(dataset->IDCG(cycle) == 0) {
             ndcg = 0;
         } else {
             ndcg = dcg / dataset->IDCG(cycle);
         }
-        change_rate_.push_back(changes/ ((double) k));
-        ncg_.push_back(changes / ((double) dataset->PagesChanged(cycle)) );
         ndcg_.push_back(ndcg);
 //        std::cout << "cycle=" << cycle << " NDCG=" << ndcg << endl;
     }
