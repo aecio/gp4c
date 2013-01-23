@@ -25,13 +25,15 @@
 // read/write the configuration to a file. If you need more variables,
 // just add them below and insert an entry in the configArray.
 
+enum {BASIC_TERMINAL_SET = 1, FULL_TERMINAL_SET = 2};
+
 const char *InfoFileName="result";
 int FitnessFunction = MyGP::CHANGE_RATE; // Fitness used in training
 int InitialVisits = 2;   // Number of initial visits to get basic statistics of change
 double Resources = 0.05; // Percent of resources used in the simulation
 int NumberOfFolds = 5;   // Number of cross validation folds
 int MaxTopGPs = 50;      // Number of GPs maintained for validation
-
+int TerminalSet = BASIC_TERMINAL_SET; // Fitness used in training
 GPVariables cfg;
 struct GPConfigVarInformation configArray[]=
 {
@@ -56,14 +58,13 @@ struct GPConfigVarInformation configArray[]=
 {"InitialVisits", DATAINT, &InitialVisits},
 {"Resources", DATADOUBLE, &Resources},
 {"NumberOfFolds", DATAINT, &NumberOfFolds},
-{"MaxTopGPs", DATAINT, &MaxTopGPs}
+{"MaxTopGPs", DATAINT, &MaxTopGPs},
+{"TerminalSet", DATAINT, &TerminalSet}
 };
 
 
 // Create function and terminal set
 void createNodeSet(GPAdfNodeSet& adfNs) {
-
-    // Define functions/terminals
 
     std::vector<Function*> functions;
 
@@ -83,26 +84,24 @@ void createNodeSet(GPAdfNodeSet& adfNs) {
     terminals.push_back(new TChanges(id++));
     terminals.push_back(new TVisits(id++));
 
-    terminals.push_back(new TChangeProbabilityCho(id++));
-    terminals.push_back(new TChangeProbabilityNAD(id++));
-    terminals.push_back(new TChangeProbabilitySAD(id++));
-    terminals.push_back(new TChangeProbabilityAAD(id++));
-    terminals.push_back(new TChangeProbabilityGAD(id++));
-
+    if(TerminalSet == FULL_TERMINAL_SET) {
+//    terminals.push_back(new TChangeProbabilityCho(id++));
+//    terminals.push_back(new TChangeProbabilityNAD(id++));
+//    terminals.push_back(new TChangeProbabilitySAD(id++));
+//    terminals.push_back(new TChangeProbabilityAAD(id++));
+//    terminals.push_back(new TChangeProbabilityGAD(id++));
 //    terminals.push_back(new TChangeProbabilityWNAD(id++));
 //    terminals.push_back(new TChangeProbabilityWAAD(id++));
 //    terminals.push_back(new TChangeProbabilityWGAD(id++));
-
-    terminals.push_back(new TChoChangeRate(id++));
-
-    terminals.push_back(new TNADChangeRate(id++));
-    terminals.push_back(new TSADChangeRate(id++));
-    terminals.push_back(new TAADChangeRate(id++));
-    terminals.push_back(new TGADChangeRate(id++));
-
 //    terminals.push_back(new TWindowedNADChangeRate(id++));
 //    terminals.push_back(new TWindowedAADChangeRate(id++));
 //    terminals.push_back(new TWindowedGADChangeRate(id++));
+        terminals.push_back(new TChoChangeRate(id++));
+        terminals.push_back(new TNADChangeRate(id++));
+        terminals.push_back(new TSADChangeRate(id++));
+        terminals.push_back(new TAADChangeRate(id++));
+        terminals.push_back(new TGADChangeRate(id++));
+    }
 
     terminals.push_back(new TConstValue(id++, 0.001));
     terminals.push_back(new TConstValue(id++, 0.01));
@@ -113,10 +112,6 @@ void createNodeSet(GPAdfNodeSet& adfNs) {
     terminals.push_back(new TConstValue(id++, 10));
     terminals.push_back(new TConstValue(id++, 100));
     terminals.push_back(new TConstValue(id++, 1000));
-
-//    terminals.push_back(new TChoNumerator(id++));
-//    terminals.push_back(new TChoDenominator(id++));
-
 
     // Reserve space for the node sets
     adfNs.reserveSpace(1);
@@ -204,6 +199,18 @@ int main(int argc, char** argv) {
         break;
     default:
         std::cerr << "Invalid fitness function." << std::endl;
+        exit(1);
+    }
+    cout << "Terminal set              = ";
+    switch(TerminalSet) {
+    case BASIC_TERMINAL_SET:
+        cout << "Basic" << endl;
+        break;
+    case FULL_TERMINAL_SET:
+        cout << "Full" << endl;
+        break;
+    default:
+        std::cerr << "Invalid teriminal set." << std::endl;
         exit(1);
     }
     cout << "Initial visits            = " << InitialVisits << endl;
