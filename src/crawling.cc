@@ -309,14 +309,25 @@ int main(int argc, char** argv) {
         MyGP* gp_avg = selector.BestGPAvg();
 
         cout << endl;
-        cout << "Best GP:" << endl;
+        cout << "==========" << endl;
+        cout << "GP2C_best:" << endl;
+        cout << "==========" << endl;
         cout << *pop->NthGP(pop->bestOfPopulation) << endl;
+        cout << "score:"
+             << static_cast<MyGP*>(pop->NthGP(pop->bestOfPopulation))->fitness_e
+             << endl;
 
-        cout << "Best GP - sum validation:" << endl;
+        cout << "==========" << endl;
+        cout << "GP2C_sum:" << endl;
+        cout << "==========" << endl;
         cout << *gp_sum << endl;
+        cout << "score:" << selector.best_sum_score() << endl;
 
-        cout << "Best GP - avg validation:" << endl;
+        cout << "==========" << endl;
+        cout << "GP2C_avg:" << endl;
+        cout << "==========" << endl;
         cout << *gp_avg << endl;
+        cout << "score:" << selector.best_avg_score() << endl;
 
         cout << "Testing best individuals..." << endl;
         GPScorer gp_best_scorer((MyGP*)pop->NthGP(pop->bestOfPopulation), "gp2c_best");

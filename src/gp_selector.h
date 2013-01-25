@@ -17,17 +17,17 @@ class GPSelector {
 public:
 
     GPSelector(int max_size):
-        max_size_(max_size), best_gp_sum(NULL), best_gp_avg(NULL) { }
+        max_size_(max_size), best_gp_sum_(NULL), best_gp_avg_(NULL) { }
 
     ~GPSelector() {
-        if(best_gp_sum) {
-            delete best_gp_sum;
-            best_gp_sum = NULL;
+        if(best_gp_sum_) {
+            delete best_gp_sum_;
+            best_gp_sum_ = NULL;
         }
 
-        if(best_gp_avg) {
-            delete best_gp_avg;
-            best_gp_avg = NULL;
+        if(best_gp_avg_) {
+            delete best_gp_avg_;
+            best_gp_avg_ = NULL;
         }
     }
 
@@ -86,11 +86,11 @@ public:
 
         assert(gps.size() > 0);
 
-        best_gp_sum = (MyGP*) &gps[0]->duplicate();
-        double best_sum_score = SumScore(best_gp_sum);
+        best_gp_sum_ = (MyGP*) &gps[0]->duplicate();
+        best_sum_score_ = SumScore(best_gp_sum_);
 
-        best_gp_avg = (MyGP*) &gps[0]->duplicate();
-        double best_avg_score = AvgScore(best_gp_avg);
+        best_gp_avg_ = (MyGP*) &gps[0]->duplicate();
+        best_avg_score_ = AvgScore(best_gp_avg_);
 
         std::cout << "Num best gps: " << gps.size() << endl;
         for(int i = 0; i < gps.size(); ++i) {
@@ -118,54 +118,64 @@ public:
 //                      << " sum_score=" << sum_score
 //                      << std::endl;
 
-            if(sum_score > best_sum_score ||
-               (sum_score == best_sum_score && gp->length() < best_gp_sum->length()) ) {
+            if(sum_score > best_sum_score_ ||
+               (sum_score == best_sum_score_ && gp->length() < best_gp_sum_->length()) ) {
 
-                std::cout << "best_sum_score=" << best_sum_score
+                std::cout << "best_sum_score=" << best_sum_score_
                           << " new_sum_score=" << sum_score
                           << std::endl;
-                cout << "old:" << *best_gp_sum;
+                cout << "old:" << *best_gp_sum_;
                 cout << "new:" << *gp << endl;
 
-                best_sum_score = sum_score;
-                delete best_gp_sum;
-                best_gp_sum = (MyGP*) &gp->duplicate();
+                best_sum_score_ = sum_score;
+                delete best_gp_sum_;
+                best_gp_sum_ = (MyGP*) &gp->duplicate();
             }
-            if(avg_score > best_avg_score ||
-               (avg_score == best_avg_score && gp->length() < best_gp_avg->length())) {
+            if(avg_score > best_avg_score_ ||
+               (avg_score == best_avg_score_ && gp->length() < best_gp_avg_->length())) {
 
-                std::cout << "best_avg_score: " << best_avg_score
+                std::cout << "best_avg_score: " << best_avg_score_
                           << " new_avg_score: " << avg_score
                           << std::endl;
-                cout << "old:" << *best_gp_sum;
+                cout << "old:" << *best_gp_sum_;
                 cout << "new:" << *gp << endl;
 
-                best_avg_score = avg_score;
-                delete best_gp_avg;
-                best_gp_avg = (MyGP*) &gp->duplicate();
+                best_avg_score_ = avg_score;
+                delete best_gp_avg_;
+                best_gp_avg_ = (MyGP*) &gp->duplicate();
             }
 
             delete gp;
         }
 
-        assert(best_gp_avg != NULL);
-        assert(best_gp_sum != NULL);
+        assert(best_gp_avg_ != NULL);
+        assert(best_gp_sum_ != NULL);
     }
 
     MyGP* BestGPSum() {
-        return best_gp_sum;
+        return best_gp_sum_;
     }
 
     MyGP* BestGPAvg() {
-        return best_gp_avg;
+        return best_gp_avg_;
+    }
+
+    double best_avg_score() const {
+        return best_avg_score_;
+    }
+
+    double best_sum_score() const {
+        return best_sum_score_;
     }
 
 private:
     MyGPQueue top_gps_;
     std::set<std::string> ids_;
     int max_size_;
-    MyGP* best_gp_sum;
-    MyGP* best_gp_avg;
+    MyGP* best_gp_sum_;
+    double best_sum_score_;
+    MyGP* best_gp_avg_;
+    double best_avg_score_;
 };
 
 #endif // BEST_GP_H
