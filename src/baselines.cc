@@ -52,7 +52,7 @@ void SetBaselines() {
 
     scorers.push_back(new RandomScorer());
     scorers.push_back(new AgeScorer());
-    scorers.push_back(new ChoChangeProbScorer());
+//    scorers.push_back(new ChoChangeProbScorer());
     scorers.push_back(new NADChangeProbScorer());
     scorers.push_back(new SADChangeProbScorer());
     scorers.push_back(new AADChangeProbScorer());
