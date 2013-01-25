@@ -86,11 +86,14 @@ public:
 
         assert(gps.size() > 0);
 
-        best_gp_sum_ = (MyGP*) &gps[0]->duplicate();
-        best_sum_score_ = SumScore(best_gp_sum_);
+        best_gp_sum_ = NULL;
+        best_sum_score_ = std::numeric_limits<int>::min();
 
-        best_gp_avg_ = (MyGP*) &gps[0]->duplicate();
-        best_avg_score_ = AvgScore(best_gp_avg_);
+        best_gp_avg_ = NULL;
+        best_avg_score_ = std::numeric_limits<int>::min();
+
+//        cout << "best_sum_score:" << best_sum_score_ <<
+//                   " best_avg_score:" << best_avg_score_ << endl;
 
         std::cout << "Num best gps: " << gps.size() << endl;
         for(int i = 0; i < gps.size(); ++i) {
@@ -124,22 +127,17 @@ public:
                 std::cout << "best_sum_score=" << best_sum_score_
                           << " new_sum_score=" << sum_score
                           << std::endl;
-                cout << "old:" << *best_gp_sum_;
-                cout << "new:" << *gp << endl;
-
                 best_sum_score_ = sum_score;
                 delete best_gp_sum_;
                 best_gp_sum_ = (MyGP*) &gp->duplicate();
             }
+
             if(avg_score > best_avg_score_ ||
                (avg_score == best_avg_score_ && gp->length() < best_gp_avg_->length())) {
 
                 std::cout << "best_avg_score: " << best_avg_score_
                           << " new_avg_score: " << avg_score
                           << std::endl;
-                cout << "old:" << *best_gp_sum_;
-                cout << "new:" << *gp << endl;
-
                 best_avg_score_ = avg_score;
                 delete best_gp_avg_;
                 best_gp_avg_ = (MyGP*) &gp->duplicate();
