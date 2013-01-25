@@ -24,7 +24,11 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
     int cycle = 1;
     for (; cycle <= warm_up; ++cycle) {
         for (int i = 0; i < dataset->NumInstances(); ++i) {
-            if( dataset->instance(repository[i]->id)->ChangedIn(cycle) ) {
+            if( dataset->instance(
+                        repository[i]->id)->ChangedIn(
+                            repository[i]->last_visit(),
+                            cycle)
+               ) {
                 repository[i]->Update(cycle, true);
             } else {
                 repository[i]->Update(cycle, false);
@@ -42,7 +46,8 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
         double dcg = 0;
         int i = 0;
         for (; i < k; ++i) {
-            if( dataset->instance(repository[i]->id)->ChangedIn(cycle) ) {
+            if( dataset->instance(repository[i]->id)->ChangedIn(
+                            repository[i]->last_visit(), cycle) ) {
                 ++changes;
                 repository[i]->Update(cycle, true);
                 if (i == 0) {
@@ -73,7 +78,8 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
 
         // Compute remaining dcg values
         for(; i < repository.size(); ++i) {
-            if( dataset->instance(repository[i]->id)->ChangedIn(cycle) ) {
+            if( dataset->instance(repository[i]->id)->ChangedIn(
+                        repository[i]->last_visit(), cycle) ) {
                 // same as: pow(2, relevance=1) - 1) / (log(i + 1)
                 dcg += 1 / (log((i+1) + 1));
             }
