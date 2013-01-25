@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <new> // For the new-handler
 #include <cstring>
+#include <iomanip>
 
 // Include header file of genetic programming system.
 #include "gp.h" 
@@ -236,6 +237,10 @@ int main(int argc, char** argv) {
     EvaluationReport evaluation(InfoFileName);
 
 
+    ostringstream gps_filename;
+    gps_filename  << InfoFileName << ".bestgps" << ends;
+    ofstream gps_file(gps_filename.str().c_str());
+
     for (int fold = 0; fold < NumberOfFolds; ++fold) {
 
         cout << "=============================================" << endl;
@@ -312,22 +317,40 @@ int main(int argc, char** argv) {
         cout << "==========" << endl;
         cout << "GP2C_best:" << endl;
         cout << "==========" << endl;
-        cout << *pop->NthGP(pop->bestOfPopulation) << endl;
+        cout << *pop->NthGP(pop->bestOfPopulation);
         cout << "score:"
              << static_cast<MyGP*>(pop->NthGP(pop->bestOfPopulation))->fitness_e
-             << endl;
+             << endl << endl;
 
         cout << "==========" << endl;
         cout << "GP2C_sum:" << endl;
         cout << "==========" << endl;
-        cout << *gp_sum << endl;
-        cout << "score:" << selector.best_sum_score() << endl;
+        cout << *gp_sum;
+        cout << "score:" << selector.best_sum_score() << endl << endl;
 
         cout << "==========" << endl;
         cout << "GP2C_avg:" << endl;
         cout << "==========" << endl;
-        cout << *gp_avg << endl;
-        cout << "score:" << selector.best_avg_score() << endl;
+        cout << *gp_avg;
+        cout << "score:" << selector.best_avg_score() << endl << endl;
+
+
+
+        gps_file << "fold " << fold
+                 << " seed " << seed
+                 << " gp2c_best "
+                 << std::fixed << std::setprecision(10)
+                 << static_cast<MyGP*>(pop->NthGP(pop->bestOfPopulation))->fitness_e
+                 << " gp2c_avg "
+                 << std::fixed << std::setprecision(10)
+                 << selector.best_avg_score()
+                 << " gp2c_sum "
+                 << std::fixed << std::setprecision(10)
+                 << selector.best_sum_score()
+                 << endl;
+
+
+
 
         cout << "Testing best individuals..." << endl;
         GPScorer gp_best_scorer((MyGP*)pop->NthGP(pop->bestOfPopulation), "gp2c_best");
@@ -352,6 +375,7 @@ int main(int argc, char** argv) {
     // TeX-file: end of document
     tout << endl << "\\end{document}"<< endl;
     tout.close ();
+    gps_file.close();
 
     cout << "\nResults are in " << InfoFileName << ".*" << endl;
 
