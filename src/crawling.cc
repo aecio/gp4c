@@ -318,6 +318,9 @@ int main(int argc, char** argv) {
         cout << "GP2C_best:" << endl;
         cout << "==========" << endl;
         cout << *pop->NthGP(pop->bestOfPopulation);
+        cout << "fitness:"
+             << static_cast<MyGP*>(pop->NthGP(pop->bestOfPopulation))->fitness_e
+             << endl;
         cout << "score:"
              << static_cast<MyGP*>(pop->NthGP(pop->bestOfPopulation))->fitness_e
              << endl << endl;
@@ -326,12 +329,16 @@ int main(int argc, char** argv) {
         cout << "GP2C_sum:" << endl;
         cout << "==========" << endl;
         cout << *gp_sum;
+        cout << "fitness_e:" << gp_sum->fitness_e << endl;
+        cout << "fitness_v:" << gp_sum->fitness_v << endl;
         cout << "score:" << selector.best_sum_score() << endl << endl;
 
         cout << "==========" << endl;
         cout << "GP2C_avg:" << endl;
         cout << "==========" << endl;
         cout << *gp_avg;
+        cout << "fitness_e:" << gp_avg->fitness_e << endl;
+        cout << "fitness_v:" << gp_sum->fitness_v << endl;
         cout << "score:" << selector.best_avg_score() << endl << endl;
 
 
