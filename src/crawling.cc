@@ -9,7 +9,7 @@
 #include <iomanip>
 
 // Include header file of genetic programming system.
-#include "gp.h" 
+#include "gp.h"
 #include "gpconfig.h"
 
 #include "gp_selector.h"
@@ -19,6 +19,7 @@
 #include "functions.h"
 #include "scorer.h"
 #include "terminals.h"
+#include "timer.h"
 #include "url.h"
 #include "evaluation.h"
 
@@ -258,6 +259,10 @@ int main(int argc, char** argv) {
         GPSelector selector(MaxTopGPs);
 
         // Create a population with this configuration
+
+        START_TIMER(GP2C_All,  "GP2C-Process_All")
+        START_TIMER(GP2C_Fold, "GP2C-Process_Fold_" << fold)
+
         cout << "Creating initial population ..." << endl;
         MyPopulation* pop = new MyPopulation(cfg, adfNs, &evolution_set,
                                              Resources, InitialVisits);
@@ -308,10 +313,15 @@ int main(int argc, char** argv) {
         bests_filename  << InfoFileName << ".bests" << fold << ends;
         ofstream bests_file(bests_filename.str().c_str());
 
+        START_TIMER(GP2C_Validation, "GP2C-Validation")
         selector.Validate(&validation_set, bests_file);
+        FINISH_TIMER(GP2C_Validation)
 
         MyGP* gp_sum = selector.BestGPSum();
         MyGP* gp_avg = selector.BestGPAvg();
+
+        FINISH_TIMER(GP2C_Fold)
+        FINISH_TIMER(GP2C_All)
 
         cout << endl;
         cout << "==========" << endl;
@@ -341,8 +351,6 @@ int main(int argc, char** argv) {
         cout << "fitness_v:" << gp_sum->fitness_v << endl;
         cout << "score:" << selector.best_avg_score() << endl << endl;
 
-
-
         gps_file << "fold " << fold
                  << " seed " << seed
                  << " gp2c_best "
@@ -357,9 +365,8 @@ int main(int argc, char** argv) {
                  << endl;
 
 
-
-
         cout << "Testing best individuals..." << endl;
+
         GPScorer gp_best_scorer((MyGP*)pop->NthGP(pop->bestOfPopulation), "gp2c_best");
         GPScorer gp_sum_scorer(gp_sum,"gp2c_sum");
         GPScorer gp_avg_scorer(gp_avg, "gp2c_avg");
@@ -369,8 +376,11 @@ int main(int argc, char** argv) {
         scorers.push_back(&gp_sum_scorer);
         scorers.push_back(&gp_avg_scorer);
 
+        START_TIMER(GP2CTest, "GP2C-Test")
         evaluation.Evaluate(scorers, &test_set, Resources, InitialVisits, fold);
+        FINISH_TIMER(GP2CTest)
     }
+
 
     std::vector<std::string> scorer_names;
     scorer_names.push_back("gp2c_best");
@@ -385,6 +395,12 @@ int main(int argc, char** argv) {
     gps_file.close();
 
     cout << "\nResults are in " << InfoFileName << ".*" << endl;
+
+    cout << "===============" << endl;
+    cout << "Resources usage "<< endl;
+    cout << "===============" << endl;
+
+    PrintTimes();
 
     return 0;
 }

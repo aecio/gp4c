@@ -2,6 +2,7 @@ set(SRC_LIST crawl_simulation.cc
              dataset.cc
              genetic.cc
              scorer.cc
+             timer.cc
              url.cc
 )
 
@@ -13,6 +14,7 @@ set(HEADER_LIST crawl_simulation.h
                 gp_selector.h
                 scorer.h
                 terminals.h
+                timer.h
                 url.h
 )
 
