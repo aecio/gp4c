@@ -44,6 +44,7 @@ Fax:    (UK) 061 745 5999
 #include <unistd.h>
 #include "gp.h"
 
+#include "../../src/timer.h"
 #include "boost/threadpool.hpp"
 
 // This function is called after a new generation has been created.
@@ -56,27 +57,33 @@ void GPPopulation::evaluate ()
     // start one thread per processor
     static boost::threadpool::pool tp(sysconf( _SC_NPROCESSORS_ONLN ));
 
-  // loop through whole population evaluating every GP
-  for (int n=0; n<containerSize(); n++)
+    START_TIMER(GPPop, "GP2C-PopulationEvaluation")
+
+    // loop through whole population evaluating every GP
+    for (int n=0; n<containerSize(); n++)
     {
-      GP* current=NthGP (n);
-#if GPINTERNALCHECK
-      if (!current)
-	GPExitSystem ("GPPopulation::evaluate", 
-		      "Member of population is NULL");
-#endif
+        GP* current=NthGP (n);
 
-      // If the evaluation is still valid, don't evaluate it again
-      if (!current->fitnessValid)
-	{
-	  // Evaluate genetic program
-//	  current->evaluate ();
-      tp.schedule(boost::bind(&GP::evaluate, current));
+        #if GPINTERNALCHECK
+        if (!current) {
+            GPExitSystem ("GPPopulation::evaluate",
+                          "Member of population is NULL");
+        }
+        #endif
 
-	  current->fitnessValid=1;
-	}
+        // If the evaluation is still valid, don't evaluate it again
+        if (!current->fitnessValid)
+        {
+            // Evaluate genetic program
+            tp.schedule(boost::bind(&GP::evaluate, current));
+//            current->evaluate ();
+
+            current->fitnessValid=1;
+        }
     }
-  tp.wait();
+    tp.wait();
+
+    FINISH_TIMER(GPPop)
 }
 
 
