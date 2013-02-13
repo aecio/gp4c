@@ -317,11 +317,11 @@ int main(int argc, char** argv) {
         selector.Validate(&validation_set, bests_file);
         FINISH_TIMER(GP2C_Validation)
 
-        MyGP* gp_sum = selector.BestGPSum();
-        MyGP* gp_avg = selector.BestGPAvg();
-
         FINISH_TIMER(GP2C_Fold)
         FINISH_TIMER(GP2C_All)
+
+        MyGP* gp_sum = selector.BestGPSum();
+        MyGP* gp_avg = selector.BestGPAvg();
 
         cout << endl;
         cout << "==========" << endl;
