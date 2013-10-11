@@ -128,12 +128,12 @@ void MyGP::RunValidation() {
         GPExitSystem("MyGP::Validate", "Error rates of evolutino is empty.");
     }
 
-    int total_rates = 0;
-    double sum_v = 0.0;
 
+    int total_rates = 0;
     const std::vector<double>* rates;
 
     // Calc mean for validation
+    double sum_v = 0.0;
     rates = &sim_validation.ChangeRates();
     for (int i = 0; i < rates->size(); ++i) {
         sum_v += (*rates)[i];
@@ -180,13 +180,14 @@ void MyGP::evaluate() {
     sim_evolution_.Run(&scorer, evolution_set_, resources_, warm_up_);
     switch(fitness_function) {
         case CHANGE_RATE:
-            stdFitness = 1 - sim_evolution_.AverageChangeRate();
+            fitness_e = sim_evolution_.AverageChangeRate();
             break;
         case NDCG:
-            stdFitness = 1 - sim_evolution_.AverageNDCG();
+            fitness_e = sim_evolution_.AverageNDCG();
             break;
         case NCG:
-            stdFitness = 1 - sim_evolution_.AverageNCG();
+            fitness_e = sim_evolution_.AverageNCG();
             break;
     }
+    stdFitness = 1 - fitness_e;
 }

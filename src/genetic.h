@@ -62,14 +62,22 @@ public:
         GP(genes),
         evolution_set_(train_set),
         resources_(resources),
-        warm_up_(warm_up) { }
+        warm_up_(warm_up),
+        fitness_e(0),
+        fitness_v(0),
+        fitness_std_dev(0),
+        cycles_std_dev(0) { }
 
     MyGP (MyGP& gpo) :
         GP(gpo),
         evolution_set_(gpo.evolution_set_),
         resources_(gpo.resources_),
         warm_up_(gpo.warm_up_),
-        sim_evolution_(gpo.sim_evolution_){ }
+        sim_evolution_(gpo.sim_evolution_),
+        fitness_e(gpo.fitness_e),
+        fitness_v(gpo.fitness_v),
+        fitness_std_dev(fitness_std_dev),
+        cycles_std_dev(cycles_std_dev) { }
 
     virtual GPObject& duplicate() {
         return *(new MyGP(*this));

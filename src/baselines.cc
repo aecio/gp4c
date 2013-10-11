@@ -8,13 +8,15 @@
 #include "scorer.h"
 #include "evaluation.h"
 
+enum {BASIC_TERMINAL_SET = 1, FULL_TERMINAL_SET = 2};
+
 const char *InfoFileName="result";
 int FitnessFunction = MyGP::CHANGE_RATE; // Fitness used in training
 int InitialVisits = 2;   // Number of initial visits to get basic statistics of change
 double Resources = 0.05; // Percent of resources used in the simulation
 int NumberOfFolds = 5;   // Number of cross validation folds
 int MaxTopGPs = 50;      // Number of GPs maintained for validation
-
+int TerminalSet = BASIC_TERMINAL_SET; // Fitness used in training
 GPVariables cfg;
 struct GPConfigVarInformation configArray[]=
 {
@@ -39,7 +41,8 @@ struct GPConfigVarInformation configArray[]=
 {"InitialVisits", DATAINT, &InitialVisits},
 {"Resources", DATADOUBLE, &Resources},
 {"NumberOfFolds", DATAINT, &NumberOfFolds},
-{"MaxTopGPs", DATAINT, &MaxTopGPs}
+{"MaxTopGPs", DATAINT, &MaxTopGPs},
+{"TerminalSet", DATAINT, &TerminalSet}
 };
 
 std::vector<std::string> names;
@@ -49,7 +52,7 @@ void SetBaselines() {
 
     scorers.push_back(new RandomScorer());
     scorers.push_back(new AgeScorer());
-    scorers.push_back(new ChoChangeProbScorer());
+//    scorers.push_back(new ChoChangeProbScorer());
     scorers.push_back(new NADChangeProbScorer());
     scorers.push_back(new SADChangeProbScorer());
     scorers.push_back(new AADChangeProbScorer());

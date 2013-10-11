@@ -19,14 +19,18 @@ protected:
         os << ")";
     }
     void PrintMathStyle2Args(MyGene* gene, std::ostream& os, int precedence) {
+        os << "(";
         gene->NthMyChild(0)->printMathStyle (os, precedence);
         os << representation;
         gene->NthMyChild(1)->printMathStyle (os, precedence);
+        os << ")";
     }
     void PrintTexStyle2Args(MyGene* gene, std::ostream& os, int precedence) {
+        os << "{";
         gene->NthMyChild(0)->printTeXStyle(os, precedence);
         os << representation;
         gene->NthMyChild(1)->printTeXStyle(os, precedence);
+        os << "}";
     }
 };
 
@@ -77,9 +81,11 @@ public:
         PrintMathStyle2Args(gene, os, precedence);
     }
     void PrintTexStyle(MyGene* gene, std::ostream& os, int precedence) {
+        os << "{";
         gene->NthMyChild(0)->printTeXStyle(os, precedence);
         os << " \\times ";
         gene->NthMyChild(1)->printTeXStyle(os, precedence);
+        os << "}";
     }
     int Precedence() {
         return 2;

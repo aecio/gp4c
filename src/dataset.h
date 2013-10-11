@@ -28,6 +28,15 @@ public:
            return false;
         }
 
+        bool ChangedIn(int last_visit, int cycle) const {
+            for(int i=last_visit; i < cycle; ++i) {
+                if(changes_[i] == '1') {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         int NumCycles() const {
             return changes_.size();
         }
