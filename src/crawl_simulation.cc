@@ -4,6 +4,14 @@
 #include "scorer.h"
 #include "url.h"
 
+/*int compara_cycle;
+Dataset* pdataset;
+static bool CycleCompare(URL* a, URL* b) {
+    return pdataset->instance(a->id)->ChangedIn(
+                a->last_visit(), compara_cycle) > pdataset->instance(b->id)->ChangedIn(
+                b->last_visit(), compara_cycle);
+}*/
+
 void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
                           double resources, int warm_up) {
 
@@ -32,6 +40,40 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
         }
     }
     for (; cycle <= dataset->NumCycles(); ++cycle) {
+//	std::cout << "Computing IDCG cycle "<<cycle<<std::endl;
+        //Calcular o IDCG com base em k urls que mudaram.
+
+        //compara_cycle=cycle;
+        //std::sort(repository.begin(), repository.end(), CycleCompare);
+        double idcg_cycle = 1;
+	int i=0;
+	int pos=0;
+        for (; i < dataset->NumInstances(); ++i) {
+		if (dataset->instance(repository[i]->id)->ChangedIn(repository[i]->last_visit(), cycle)){
+        	        if (pos == 0) {
+                	    idcg_cycle = 1;
+	                } else {
+        	            idcg_cycle +=  1 / (log((pos+1) + 1));;
+                	}
+		        pos++;
+		/*	std::cout << "pos="<< pos <<" <k= "<<k
+        	              << " changed= " << dataset->instance(repository[i]->id)->ChangedIn(
+                	repository[i]->last_visit(), cycle)<<" since visit "<<repository[i]->last_visit()<<" and now is cycle "<<cycle
+	                      << " idcg_cycle=" << idcg_cycle << std::endl;*/
+		}
+		if(pos==k){
+			/*std::cout << "pos="<< pos <<" <k= "<<k
+                              << " changed= " << dataset->instance(repository[i]->id)->ChangedIn(
+                        repository[i]->last_visit(), cycle)<<" since visit "<<repository[i]->last_visit()<<" and now is cycle "<<cycle
+                              << " idcg_cycle=" << idcg_cycle << std::endl;*/
+			break;
+		}
+        }
+
+        //FIM IDCG DO CICLO
+
+	//std::cout<<"FIM "<<cycle<<" idcg= "<<idcg_cycle<<std::endl;
+
         for (int i = 0; i < dataset->NumInstances(); ++i) {
             repository[i]->score = scorer->Score(*repository[i], cycle);
         }
@@ -40,7 +82,7 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
         std::sort(repository.begin(), repository.end(), URL::ComparePtr);
         int changes = 0;
         double dcg = 0;
-        int i = 0;
+        i = 0;
         for (; i < k; ++i) {
             if( dataset->instance(repository[i]->id)->ChangedIn(cycle) ) {
                 ++changes;
@@ -79,11 +121,19 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
             }
         }
 
-        double ndcg;
+	/*double ndcg;
         if(dataset->IDCG(cycle) == 0) {
             ndcg = 0;
         } else {
             ndcg = dcg / dataset->IDCG(cycle);
+        }
+        ndcg_.push_back(ndcg);*/
+
+        double ndcg;
+        if(idcg_cycle == 0) {
+            ndcg = 0;
+        } else {
+            ndcg = dcg / idcg_cycle;
         }
         ndcg_.push_back(ndcg);
 //        std::cout << "cycle=" << cycle << " NDCG=" << ndcg << endl;
