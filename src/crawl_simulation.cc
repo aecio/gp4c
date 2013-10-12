@@ -49,7 +49,7 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
 
         //compara_cycle=cycle;
         //std::sort(repository.begin(), repository.end(), CycleCompare);
-        double idcg_cycle = 1;
+        double idcg_cycle = 0;
 	int i=0;
 	int pos=0;
         for (; i < dataset->NumInstances(); ++i) {
@@ -73,8 +73,8 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
 			break;
 		}
         }
-
-        //FIM IDCG DO CICLO
+	//if (cycle==3){	std::cout << "idcg ciclo "<<cycle<<"i= "<<pos <<" = "<<idcg_cycle<< endl;}
+       //FIM IDCG DO CICLO
 
 	//std::cout<<"FIM "<<cycle<<" idcg= "<<idcg_cycle<<std::endl;
 
@@ -110,6 +110,8 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
 //            std::cout << "gad=" << repository[i]->GetGADChangeRate(cycle) << endl;
 //            std::cout << "cho=" << repository[i]->GetChoChangeRate() << endl;
         }
+	//if (cycle==3 && dcg>123){ std::cout << "ciclo "<<cycle<<" read "<<i<<" nchange= "<<changes <<" dcg= "<<dcg<< endl;}
+
         change_rate_.push_back(changes/ ((double) k));
 
         // Compute remaining cg values until number of changed pages
@@ -119,13 +121,13 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
         ncg_.push_back(changes / ((double) dataset->PagesChanged(cycle)) );
 
         // Compute remaining dcg values
-        for(; i < repository.size(); ++i) {
+        /*for(; i < repository.size(); ++i) {
             if( dataset->instance(repository[i]->id)->ChangedIn(
                         repository[i]->last_visit(), cycle) ) {
                 // same as: pow(2, relevance=1) - 1) / (log(i + 1)
                 dcg += 1 / (log((i+1) + 1));
             }
-        }
+        }*/
 
 	/*double ndcg;
         if(dataset->IDCG(cycle) == 0) {
@@ -142,7 +144,7 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
             ndcg = dcg / idcg_cycle;
         }
         ndcg_.push_back(ndcg);
-//        std::cout << "cycle=" << cycle << " NDCG=" << ndcg << endl;
+	//if (cycle==3){std::cout << "cycle=" << cycle << " NDCG=" << ndcg <<" dcg "<<dcg<<" /idcg_cycle "<< idcg_cycle<<endl;}
     }
 //    std::cout << "AverageNDCG=" << AverageNDCG() << endl;
 
