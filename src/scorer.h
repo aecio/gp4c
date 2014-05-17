@@ -237,4 +237,132 @@ public:
 private:
 };
 
+class BestChrateScorer1 : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+
+        //  n          X         t
+        //visits_ - changes_   url.last_visit();
+        //((cho*(cho*t))+(gad+0.01))
+        return ((url.GetChoChangeRate()*(url.GetChoChangeRate()*url.last_visit()))+(url.GetGADChangeRate(cycle)+0.01));
+    }
+    const std::string Name() {
+        return "bestgp_chrate1";
+    }
+private:
+};
+
+class BestChrateScorer2 : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+        //  n          X         t
+        //visits_ - changes_   url.last_visit();
+	return (log(((exp(url.GetChoChangeRate()))*(url.GetChoChangeRate()*url.last_visit())))-((10*10)-((((10+10))/((url.changes()+url.visits())))*((url.changes()+pow(0.5,0.01))))));
+    }
+    const std::string Name() {
+        return "bestgp_chrate2";
+    }
+private:
+};
+
+class BestChrateScorer3 : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+
+        //  n          X         t
+        //visits_ - changes_   url.last_visit();
+	return pow((url.last_visit()*url.GetChoChangeRate()),(((2.71828*url.GetGADChangeRate(cycle))+pow(((1+url.GetGADChangeRate(cycle))),(exp(1))))));
+    }
+    const std::string Name() {
+        return "bestgp_chrate3";
+    }
+private:
+};
+
+class BestChrateScorer4 : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+
+        //  n          X         t
+        //visits_ - changes_   url.last_visit();
+	return  (url.GetGADChangeRate(cycle)-((10+0.01)-(pow(url.GetChoChangeRate(),2.71828)*url.last_visit())));
+    }
+    const std::string Name() {
+        return "bestgp_chrate4";
+    }
+private:
+};
+
+class BestChrateScorer5 : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+
+        //  n          X         t
+        //visits_ - changes_   url.last_visit();
+	return  pow(((url.last_visit()+url.GetChoChangeRate())),((url.GetChoChangeRate()+0.001)));
+    }
+    const std::string Name() {
+        return "bestgp_chrate5";
+    }
+private:
+};
+
+class BestNDCGScorer1 : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+
+        //(0.001+(cho%(n%(cho*t))))
+        return (0.001 + (url.GetChoChangeRate()/(url.visits()/(url.GetChoChangeRate()*url.last_visit()))));
+    }
+    const std::string Name() {
+        return "bestgp_ndcg1";
+    }
+private:
+};
+
+class BestNDCGScorer2 : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+	return log((url.GetChoChangeRate()*((exp(pow(url.changes(),0.1))+url.last_visit()))));
+    }
+    const std::string Name() {
+        return "bestgp_ndcg2";
+    }
+private:
+};
+
+class BestNDCGScorer3 : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+	return  pow((exp((url.GetGADChangeRate(cycle)*url.last_visit()))),pow(((2.71828+log(url.changes()))),url.last_visit()));
+    }
+    const std::string Name() {
+        return "bestgp_ndcg3";
+    }
+private:
+};
+
+class BestNDCGScorer4 : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+	return  log(exp((url.GetChoChangeRate()-pow((log(2.71828)),(1*url.last_visit())))));
+    }
+    const std::string Name() {
+        return "bestgp_ndcg4";
+    }
+private:
+};
+
+class BestNDCGScorer5 : public Scorer {
+public:
+    inline double Score(URL& url, int cycle) {
+	return  ((((((url.changes()*url.GetChoChangeRate())*url.changes())/100)+url.GetChoChangeRate()))*url.last_visit());
+    }
+    const std::string Name() {
+        return "bestgp_ndcg5";
+    }
+private:
+};
+
+
 #endif // SCORER_H

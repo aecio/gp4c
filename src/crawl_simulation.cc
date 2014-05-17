@@ -60,10 +60,10 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
         	            idcg_cycle +=  1 / (log((pos+1) + 1));;
                 	}
 		        pos++;
-		/*	std::cout << "pos="<< pos <<" <k= "<<k
-        	              << " changed= " << dataset->instance(repository[i]->id)->ChangedIn(
+			std::cout << "pos="<< pos <<" <k= "<<k
+        	              << " changed= " <<" id "<<repository[i]->id <<" "<< dataset->instance(repository[i]->id)->ChangedIn(
                 	repository[i]->last_visit(), cycle)<<" since visit "<<repository[i]->last_visit()<<" and now is cycle "<<cycle
-	                      << " idcg_cycle=" << idcg_cycle << std::endl;*/
+	                      << " idcg_cycle=" << idcg_cycle << std::endl;
 		}
 		if(pos==k){
 			/*std::cout << "pos="<< pos <<" <k= "<<k

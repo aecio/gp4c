@@ -50,6 +50,7 @@ std::vector<Scorer*> scorers;
 
 void SetBaselines() {
 
+     /*BASELINES FUNCTIONS*/
     scorers.push_back(new RandomScorer());
     scorers.push_back(new AgeScorer());
 //    scorers.push_back(new ChoChangeProbScorer());
@@ -58,6 +59,21 @@ void SetBaselines() {
     scorers.push_back(new AADChangeProbScorer());
     scorers.push_back(new GADChangeProbScorer());
     scorers.push_back(new ChoChangeRateScorer());
+
+    /*BEST CHRATE FUNCTIONS*/
+    /*scorers.push_back(new BestChrateScorer1());
+    scorers.push_back(new BestChrateScorer2());
+    scorers.push_back(new BestChrateScorer3());
+    scorers.push_back(new BestChrateScorer4());
+    scorers.push_back(new BestChrateScorer5());*/
+
+    /*BEST NDCG FUNCTIONS*/
+    /*scorers.push_back(new BestNDCGScorer1());
+    scorers.push_back(new BestNDCGScorer2());
+    scorers.push_back(new BestNDCGScorer3());
+    scorers.push_back(new BestNDCGScorer4());
+    scorers.push_back(new BestNDCGScorer5());*/
+
 
     for (int i = 0; i < scorers.size(); ++i) {
         names.push_back(scorers[i]->Name());
