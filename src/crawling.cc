@@ -36,6 +36,8 @@ double Resources = 0.05; // Percent of resources used in the simulation
 int NumberOfFolds = 5;   // Number of cross validation folds
 int MaxTopGPs = 50;      // Number of GPs maintained for validation
 int TerminalSet = BASIC_TERMINAL_SET; // Fitness used in training
+int SplitDatasetByTime = true; // If the dataset must be splited by time
+
 GPVariables cfg;
 struct GPConfigVarInformation configArray[]=
 {
@@ -61,7 +63,8 @@ struct GPConfigVarInformation configArray[]=
 {"Resources", DATADOUBLE, &Resources},
 {"NumberOfFolds", DATAINT, &NumberOfFolds},
 {"MaxTopGPs", DATAINT, &MaxTopGPs},
-{"TerminalSet", DATAINT, &TerminalSet}
+{"TerminalSet", DATAINT, &TerminalSet},
+{"SplitDatasetByTime", DATAINT, &SplitDatasetByTime}
 };
 
 
@@ -219,6 +222,7 @@ int main(int argc, char** argv) {
     cout << "Resources                 = " << Resources << endl;
     cout << "Number of folds           = " << NumberOfFolds << endl;
     cout << "Max top GPs               = " << MaxTopGPs << endl;
+    cout << "SplitDatasetByTime        = " << SplitDatasetByTime << endl;
     cout << "Seed value                = " << seed << endl;
     cout << endl;
 
@@ -249,12 +253,34 @@ int main(int argc, char** argv) {
         fout << "Fold "<< fold << " of " << NumberOfFolds << endl << endl;
         tout << "\\section{Fold "<<fold<<" of "<<NumberOfFolds<<"}\n" << endl;
 
+        Dataset cv_train_set = data_file.dataset().trainCV(NumberOfFolds, fold);
+        Dataset cv_test_set = data_file.dataset().testCV(NumberOfFolds, fold);
 
-        Dataset test_set = data_file.dataset().testCV(NumberOfFolds, fold);
-        Dataset train_set = data_file.dataset().trainCV(NumberOfFolds, fold);
+        Dataset validation_set;
+        Dataset evolution_set;
+        Dataset test_set;
 
-        Dataset evolution_set  = train_set.trainCV(2, 0);
-        Dataset validation_set = train_set.testCV(2, 0);
+        if(SplitDatasetByTime == 1) {
+            cout << "Spliting dataset by TIME..." << endl;
+            evolution_set  = cv_train_set.timeSplit(4, 0);
+            validation_set = cv_train_set.timeSplit(4, 1);
+            test_set       = cv_test_set.timeSplit(2, 1);
+        } else {
+            cout << "Spliting dataset by PAGES..." << endl;
+            evolution_set  = cv_train_set.trainCV(2, 0);
+            validation_set = cv_train_set.testCV(2, 0);
+            test_set       = cv_test_set;
+        }
+
+        /*
+        cout << "==== data: evolution_set ====" << endl;
+        evolution_set.Print();
+        cout << "==== data: validation_set ===" << endl;
+        validation_set.Print();
+
+        cout << "==== data: test_set ====" << endl;
+        test_set.Print();
+        */
 
         GPSelector selector(MaxTopGPs);
 
@@ -379,6 +405,8 @@ int main(int argc, char** argv) {
         START_TIMER(GP2CTest, "GP2C-Test")
         evaluation.Evaluate(scorers, &test_set, Resources, InitialVisits, fold);
         FINISH_TIMER(GP2CTest)
+
+
     }
 
 

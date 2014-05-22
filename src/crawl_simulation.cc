@@ -33,7 +33,7 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
     for (; cycle <= warm_up; ++cycle) {
         for (int i = 0; i < dataset->NumInstances(); ++i) {
             if( dataset->instance(
-                        repository[i]->id)->ChangedIn(
+                        repository[i]->id).ChangedIn(
                             repository[i]->last_visit(),
                             cycle)
                ) {
@@ -53,17 +53,21 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
 	int i=0;
 	int pos=0;
         for (; i < dataset->NumInstances(); ++i) {
-		if (dataset->instance(repository[i]->id)->ChangedIn(repository[i]->last_visit(), cycle)){
-        	        if (pos == 0) {
-                	    idcg_cycle = 1;
-	                } else {
-        	            idcg_cycle +=  1 / (log((pos+1) + 1));;
-                	}
-		        pos++;
-			std::cout << "pos="<< pos <<" <k= "<<k
-        	              << " changed= " <<" id "<<repository[i]->id <<" "<< dataset->instance(repository[i]->id)->ChangedIn(
-                	repository[i]->last_visit(), cycle)<<" since visit "<<repository[i]->last_visit()<<" and now is cycle "<<cycle
-	                      << " idcg_cycle=" << idcg_cycle << std::endl;
+        if (dataset->instance(repository[i]->id).ChangedIn(repository[i]->last_visit(), cycle)){
+            if (pos == 0) {
+                idcg_cycle = 1;
+            } else {
+                idcg_cycle +=  1 / (log((pos+1) + 1));;
+            }
+            pos++;
+            /*
+            std::cout << "pos="<< pos <<" <k= "<< k
+                    << " changed= "
+                    <<" id "<<repository[i]->id <<" "<< dataset->instance(repository[i]->id)->ChangedIn(repository[i]->last_visit(), cycle)
+                    <<" since visit "<<repository[i]->last_visit()
+                    <<" and now is cycle " << cycle
+                    <<" idcg_cycle=" << idcg_cycle << std::endl;
+            */
 		}
 		if(pos==k){
 			/*std::cout << "pos="<< pos <<" <k= "<<k
@@ -88,7 +92,7 @@ void CrawlSimulation::Run(Scorer* scorer, Dataset* dataset,
         double dcg = 0;
         i = 0;
         for (; i < k; ++i) {
-            if( dataset->instance(repository[i]->id)->ChangedIn(
+            if( dataset->instance(repository[i]->id).ChangedIn(
                             repository[i]->last_visit(), cycle) ) {
                 ++changes;
                 repository[i]->Update(cycle, true);

@@ -2,6 +2,7 @@
 #define DATASET_H
 
 #include <algorithm>
+#include <iostream>
 #include <vector>
 #include <string>
 
@@ -33,13 +34,17 @@ public:
             return changes_.size();
         }
 
+        const std::string& changes() const {
+            return changes_;
+        }
+
     private:
         std::string changes_;
     };
 
     Dataset(): idcg_ready_(false) { }
 
-    const Instance* instance(int i) const {
+    const Instance& instance(int i) const {
         return instances_[i];
     }
 
@@ -55,10 +60,10 @@ public:
     }
 
     int NumCycles() const {
-        return instances_[0]->NumCycles();
+        return instances_[0].NumCycles();
     }
 
-    void Add(const Instance* instance) {
+    void Add(const Instance& instance) {
         instances_.push_back(instance);
     }
 
@@ -66,14 +71,28 @@ public:
         std::random_shuffle(instances_.begin(), instances_.end());
     }
 
-    Dataset testCV(int num_folds, int current_fold);
+    Dataset testCV(int num_folds, int current_fold) const;
 
-    Dataset trainCV(int num_folds, int current_fold);
+    Dataset trainCV(int num_folds, int current_fold) const;
+
+    Dataset timeSplit(int num_splits, int split_index) const;
+
+    void Print() const {
+        for (int i = 0; i < instances_.size(); ++i) {
+            std::cout << instances_[i].changes() << std::endl;
+        }
+    }
+
+    void Clear() {
+        instances_.clear();
+        idcg_.clear();
+        idcg_ready_ = false;
+    }
 
 private:
 
-    void CopyInstances(int from, Dataset& dest, int num);
-    std::vector<const Instance*> instances_;
+    void CopyInstances(int from, Dataset& dest, int num) const;
+    std::vector<Instance> instances_;
     std::vector<double> idcg_;
     std::vector<int> pages_changed_;
     bool idcg_ready_;
@@ -83,29 +102,22 @@ class DataArchive {
 public:
     enum {PARTITION_URL, PARTITION_CYCLE};
 
-    DataArchive(): data_(NULL) { }
+    DataArchive() { }
 
-    DataArchive(const std::string& filename): data_(NULL) {
+    DataArchive(const std::string& filename) {
         Init(filename);
-    }
-
-    ~DataArchive() {
-        if(data_) {
-            delete[] data_;
-        }
     }
 
     void Init(const std::string& filename);
 
     void ReadFile(const std::string& filename);
 
-    Dataset& dataset() {
+    const Dataset& dataset() const {
         return dataset_;
     }
 
 private:
     Dataset dataset_;
-    Dataset::Instance* data_;
 };
 
 #endif // DATASET_H
