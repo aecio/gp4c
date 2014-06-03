@@ -17,7 +17,9 @@ double Resources = 0.05; // Percent of resources used in the simulation
 int NumberOfFolds = 5;   // Number of cross validation folds
 int MaxTopGPs = 50;      // Number of GPs maintained for validation
 int TerminalSet = BASIC_TERMINAL_SET; // Fitness used in training
+int SplitDatasetByTime = true; // If the dataset must be splited by time
 GPVariables cfg;
+
 struct GPConfigVarInformation configArray[]=
 {
 {"PopulationSize", DATAINT, &cfg.PopulationSize},
@@ -42,7 +44,8 @@ struct GPConfigVarInformation configArray[]=
 {"Resources", DATADOUBLE, &Resources},
 {"NumberOfFolds", DATAINT, &NumberOfFolds},
 {"MaxTopGPs", DATAINT, &MaxTopGPs},
-{"TerminalSet", DATAINT, &TerminalSet}
+{"TerminalSet", DATAINT, &TerminalSet},
+{"SplitDatasetByTime", DATAINT, &SplitDatasetByTime}
 };
 
 std::vector<std::string> names;
@@ -102,8 +105,20 @@ int main(int argc, char** argv) {
         cout << "=======================================" << endl;
         cout << "Running fold " << fold << " out of " << NumberOfFolds << endl;
         cout << "---------------------------------------" << endl;
-        Dataset test_set = data_file.dataset().testCV(NumberOfFolds, fold);
+//        Dataset test_set = data_file.dataset().testCV(NumberOfFolds, fold);
+	
+        Dataset cv_test_set = data_file.dataset().testCV(NumberOfFolds, fold);
 
+        Dataset test_set;
+
+        if(SplitDatasetByTime == 1) {
+            cout << "Spliting dataset by TIME..." << endl;
+            test_set       = cv_test_set.timeSplit(2, 1);
+        } else {
+            cout << "Spliting dataset by PAGES..." << endl;
+            test_set       = cv_test_set;
+        }
+	
         evaluation.Evaluate(scorers, &test_set, Resources, InitialVisits, fold);
 
 
