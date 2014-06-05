@@ -262,8 +262,11 @@ int main(int argc, char** argv) {
 
         if(SplitDatasetByTime == 1) {
             cout << "Spliting dataset by TIME..." << endl;
-            evolution_set  = cv_train_set.timeSplit(4, 0);
-            validation_set = cv_train_set.timeSplit(4, 1);
+            Dataset cv_evolution_set = cv_train_set.trainCV(4, 0);
+            Dataset cv_validation_set = cv_train_set.testCV(4, 0);
+
+            evolution_set  = cv_evolution_set.timeSplit(4, 0);
+            validation_set = cv_validation_set.timeSplit(4, 1);
             test_set       = cv_test_set.timeSplit(2, 1);
         } else {
             cout << "Spliting dataset by PAGES..." << endl;
