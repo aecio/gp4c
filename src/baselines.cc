@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
 
         if(SplitDatasetByTime == 1) {
             cout << "Spliting dataset by TIME..." << endl;
-            test_set       = cv_test_set.timeSplit(2, 1);
+            test_set       = cv_test_set.timeSplit(3, 2);
         } else {
             cout << "Spliting dataset by PAGES..." << endl;
             test_set       = cv_test_set;
