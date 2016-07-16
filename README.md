@@ -16,8 +16,8 @@ having been modified.
 
 This code was used for the experiments in the following publications:
 
-- Aécio S. R. Santos. [**Learning to Schedule Web Page Updates Using Genetic Programming.**](http://homepages.dcc.ufmg.br/~aeciosantos/publications/master-thesis.pdf) *Master Thesis at Universidade Federal de Minas Gerais.* Advisor: Nivio Ziviani. March 11, 2013.
+- Aécio S. R. Santos. [**Learning to Schedule Web Page Updates Using Genetic Programming.**](http://homepages.dcc.ufmg.br/~aeciosantos/static/publications/master-thesis.pdf) *Master Thesis at Universidade Federal de Minas Gerais.* Advisor: Nivio Ziviani. March 11, 2013.
 
-- Aécio S. R. Santos, Nivio Ziviani, Jussara M. Almeida, Cristiano Carvalho, Edleno Silva de Moura, Altigran Soares da Silva. [**Learning to Schedule Webpage Updates Using Genetic Programming.**](http://homepages.dcc.ufmg.br/~aeciosantos/publications/spire13.pdf) *20th String Processing and Information Retrieval Symposium*, October 2013.
+- Aécio S. R. Santos, Nivio Ziviani, Jussara M. Almeida, Cristiano Carvalho, Edleno Silva de Moura, Altigran Soares da Silva. [**Learning to Schedule Webpage Updates Using Genetic Programming.**](http://homepages.dcc.ufmg.br/~aeciosantos/static/publications/spire13.pdf) *20th String Processing and Information Retrieval Symposium*, October 2013.
 
 - Aécio S. R. Santos, Cristiano Carvalho, Jussara M. Almeida, Edleno Silva de Moura, Altigran Soares da Silva, Nivio Ziviani: [**A genetic programming framework to schedule webpage updates**](http://link.springer.com/article/10.1007%2Fs10791-014-9248-5). *Journal of Information Retrieval*, October 2014.
